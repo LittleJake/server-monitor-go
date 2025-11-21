@@ -8,4 +8,4 @@ type CpuAPI struct{}
 
 var Cpu = CpuAPI{}
 
-func (CpuAPI) get(c *gin.Context) {}
+func (CpuAPI) Get(c *gin.Context) {}

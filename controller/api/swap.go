@@ -8,4 +8,4 @@ type SwapAPI struct{}
 
 var Swap = SwapAPI{}
 
-func (SwapAPI) get(c *gin.Context) {}
+func (SwapAPI) Get(c *gin.Context) {}

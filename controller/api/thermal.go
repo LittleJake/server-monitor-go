@@ -8,4 +8,4 @@ type ThermalAPI struct{}
 
 var Thermal = ThermalAPI{}
 
-func (ThermalAPI) get(c *gin.Context) {}
+func (ThermalAPI) Get(c *gin.Context) {}

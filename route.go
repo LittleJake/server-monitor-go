@@ -30,22 +30,22 @@ func SetupRouter() *gin.Engine {
 		c.Next()
 	})
 
-	r.GET("/", controller.Index.index)
+	r.GET("/", controller.Index.Index)
 	// Info routes
-	r.GET("/info/:uuid", controller.Index.info)
+	r.GET("/info/:uuid", controller.Index.Info)
 
 	// API group
 	_api := r.Group("/api")
 	{
-		_api.GET("/cpu/:uuid", api.Cpu.get)
-		_api.GET("/memory/:uuid", api.Memory.get)
-		_api.GET("/disk/:uuid", api.Disk.get)
-		_api.GET("/network/:uuid", api.Network.get)
-		_api.GET("/io/:uuid", api.IO.get)
-		_api.GET("/ping/:uuid", api.Ping.get)
-		_api.GET("/swap/:uuid", api.Swap.get)
-		_api.GET("/thermal/:uuid", api.Thermal.get)
-		_api.GET("/report/:uuid", api.Report.get)
+		_api.GET("/cpu/:uuid", api.Cpu.Get)
+		_api.GET("/memory/:uuid", api.Memory.Get)
+		_api.GET("/disk/:uuid", api.Disk.Get)
+		_api.GET("/network/:uuid", api.Network.Get)
+		_api.GET("/io/:uuid", api.IO.Get)
+		_api.GET("/ping/:uuid", api.Ping.Get)
+		_api.GET("/swap/:uuid", api.Swap.Get)
+		_api.GET("/thermal/:uuid", api.Thermal.Get)
+		_api.GET("/report/:uuid", api.Report.Get)
 	}
 
 	// Public routes

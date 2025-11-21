@@ -8,4 +8,4 @@ type PingAPI struct{}
 
 var Ping = PingAPI{}
 
-func (PingAPI) get(c *gin.Context) {}
+func (PingAPI) Get(c *gin.Context) {}

@@ -8,4 +8,4 @@ type IOAPI struct{}
 
 var IO = IOAPI{}
 
-func (IOAPI) get(c *gin.Context) {}
+func (IOAPI) Get(c *gin.Context) {}

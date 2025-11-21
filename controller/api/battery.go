@@ -8,4 +8,4 @@ type BatteryAPI struct{}
 
 var Battery = BatteryAPI{}
 
-func (BatteryAPI) get(c *gin.Context) {}
+func (BatteryAPI) Get(c *gin.Context) {}

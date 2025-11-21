@@ -8,4 +8,4 @@ type DiskAPI struct{}
 
 var Disk = DiskAPI{}
 
-func (DiskAPI) get(c *gin.Context) {}
+func (DiskAPI) Get(c *gin.Context) {}

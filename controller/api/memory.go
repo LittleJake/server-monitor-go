@@ -8,4 +8,4 @@ type MemoryAPI struct{}
 
 var Memory = MemoryAPI{}
 
-func (MemoryAPI) get(c *gin.Context) {}
+func (MemoryAPI) Get(c *gin.Context) {}

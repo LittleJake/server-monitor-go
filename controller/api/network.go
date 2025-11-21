@@ -8,4 +8,4 @@ type NetworkAPI struct{}
 
 var Network = NetworkAPI{}
 
-func (NetworkAPI) get(c *gin.Context) {}
+func (NetworkAPI) Get(c *gin.Context) {}

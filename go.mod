@@ -1,4 +1,4 @@
-module server-monitor-go
+module github.com/LittleJake/server-monitor-go
 
 go 1.25.4
 
