@@ -52,7 +52,11 @@ func SetupRouter() *gin.Engine {
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok", "uptime": time.Now().UTC()})
 	})
-
+	// Public routes
+	r.GET("/404", func(c *gin.Context) {
+		c.HTML(http.StatusNotFound,
+			"404.html", gin.H{})
+	})
 	r.GET("/metrics", func(c *gin.Context) {
 		// placeholder for real metrics
 		c.JSON(http.StatusOK, gin.H{"requests": 1234})
