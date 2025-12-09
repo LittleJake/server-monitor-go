@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -12,11 +13,56 @@ import (
 
 // SetupRouter builds and returns a gin.Engine with example routes and middleware.
 func SetupRouter() *gin.Engine {
+	// parse bool from environment variable `WEB.IS_DEBUG`.
+	// Accepts common boolean string values like: 1, t, T, TRUE, true, True, 0, f, F, FALSE, false, False
+	isDebug := false
+	if b := GetEnvBool("IS_DEBUG", false); b {
+		isDebug = b
+	}
+
+	println("Web Debug Mode:", isDebug)
+	if isDebug {
+		gin.SetMode(gin.DebugMode)
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	r := gin.New()
 
 	// Built-in middleware
 	r.Use(gin.Logger())
-	r.Use(gin.Recovery())
+	// Use the default Recovery in debug mode so developers see panics.
+	// In non-debug (production) mode, use a custom recovery that renders
+	// a friendly error page instead of exposing stack traces.
+	if gin.IsDebugging() {
+		r.Use(gin.Recovery())
+	} else {
+		r.Use(gin.CustomRecovery(func(c *gin.Context, recovered interface{}) {
+			c.HTML(http.StatusInternalServerError, "error.html", gin.H{})
+		}))
+	}
+
+	// In non-debug mode, route unknown paths and methods to the error page.
+	if !gin.IsDebugging() {
+		r.NoRoute(func(c *gin.Context) {
+			c.HTML(http.StatusNotFound, "error.html", gin.H{})
+		})
+		r.NoMethod(func(c *gin.Context) {
+			c.HTML(http.StatusMethodNotAllowed, "error.html", gin.H{})
+		})
+	} else {
+		data := map[string]interface{}{
+			"Envs": GetAllEnvs(),
+		}
+		r.NoRoute(func(c *gin.Context) {
+			data["Message"] = fmt.Sprintf("%s %s", c.Request.URL.String(), "Not Found")
+			c.HTML(http.StatusNotFound, "error.html", data)
+		})
+		r.NoMethod(func(c *gin.Context) {
+			data["Message"] = fmt.Sprintf("%s %s", c.Request.URL.String(), "Method Not Allowed")
+			c.HTML(http.StatusMethodNotAllowed, "error.html", data)
+		})
+	}
 
 	// Simple CORS middleware (for example purposes)
 	r.Use(func(c *gin.Context) {
@@ -31,6 +77,7 @@ func SetupRouter() *gin.Engine {
 	})
 
 	r.GET("/", controller.Index.Index)
+
 	// Info routes
 	r.GET("/info/:uuid", controller.Index.Info)
 
@@ -55,7 +102,7 @@ func SetupRouter() *gin.Engine {
 	// Public routes
 	r.GET("/404", func(c *gin.Context) {
 		c.HTML(http.StatusNotFound,
-			"404.html", gin.H{})
+			"error.html", gin.H{})
 	})
 	r.GET("/metrics", func(c *gin.Context) {
 		// placeholder for real metrics
