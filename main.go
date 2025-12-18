@@ -1,9 +1,11 @@
 package main
 
+import "github.com/LittleJake/server-monitor-go/internal/util"
+
 // optional: minimal main to run the router
 func main() {
 	//load .env
-	_ = LoadEnv()
+	_ = util.LoadEnv()
 
 	r := SetupRouter()
 	// listen and serve on 0.0.0.0:8080

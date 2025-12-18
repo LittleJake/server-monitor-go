@@ -1,80 +1,3 @@
-<!-- <?php
-    if(!function_exists('parse_padding')){
-        function parse_padding($source)
-        {
-            $length  = strlen(strval(count($source['source']) + $source['first']));
-            return 40 + ($length - 1) * 8;
-        }
-    }
-
-    if(!function_exists('parse_class')){
-        function parse_class($name)
-        {
-            $names = explode('\\', $name);
-            return '<abbr title="'.$name.'">'.end($names).'</abbr>';
-}
-}
-
-if(!function_exists('parse_file')){
-function parse_file($file, $line)
-{
-return '<a class="toggle" title="'."{$file} line {$line}".'">'.basename($file)." line {$line}".'</a>';
-}
-}
-
-if(!function_exists('parse_args')){
-function parse_args($args)
-{
-$result = [];
-
-foreach ($args as $key => $item) {
-switch (true) {
-case is_object($item):
-$value = sprintf('<em>object</em>(%s)', parse_class(get_class($item)));
-break;
-case is_array($item):
-if(count($item) > 3){
-$value = sprintf('[%s, ...]', parse_args(array_slice($item, 0, 3)));
-} else {
-$value = sprintf('[%s]', parse_args($item));
-}
-break;
-case is_string($item):
-if(strlen($item) > 20){
-$value = sprintf(
-'\'<a class="toggle" title="%s">%s...</a>\'',
-htmlentities($item),
-htmlentities(substr($item, 0, 20))
-);
-} else {
-$value = sprintf("'%s'", htmlentities($item));
-}
-break;
-case is_int($item):
-case is_float($item):
-$value = $item;
-break;
-case is_null($item):
-$value = '<em>null</em>';
-break;
-case is_bool($item):
-$value = '<em>' . ($item ? 'true' : 'false') . '</em>';
-break;
-case is_resource($item):
-$value = '<em>resource</em>';
-break;
-default:
-$value = htmlentities(str_replace("\n", '', var_export(strval($item), true)));
-break;
-}
-
-$result[] = is_int($key) ? $value : "'{$key}' => {$value}";
-}
-
-return implode(', ', $result);
-}
-}
-?> -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -176,7 +99,7 @@ return implode(', ', $result);
             box-sizing: border-box;
             font-size:14px;
             font-family: "Century Gothic",Consolas,"Liberation Mono",Courier,Verdana;
-            padding-left: <?php echo (isset($source) && !empty($source)) ? parse_padding($source) : 40;  ?>px;
+            padding-left: 40;
         }
         .exception .source-code pre li{
             border-left: 1px solid #ddd;
@@ -296,7 +219,7 @@ return implode(', ', $result);
                 <div class="echo">
                     <!-- <?php echo $echo;?> -->
                 </div>
-                <!-- <?php if(\think\facade\App::isDebug()) { ?> -->
+                {{ if .Debug }}
                 <div class="exception">
                     <div class="message">
 
@@ -341,54 +264,16 @@ return implode(', ', $result);
                         </ol>
                     </div>
                 </div>
-                <?php } else { ?>
+                {{ else }}
                 <div class="exception">
-
                     <div class="info"><h1>Something is wrong!</h1></div>
-
                 </div>
-                <?php } ?>
+                {{ end }}
 
-                <?php if(!empty($datas)){ ?>
+                {{ if .Debug }}
                 <div class="exception-var">
                     <h2>Exception Datas</h2>
-                    <?php foreach ((array) $datas as $label => $value) { ?>
                     <table>
-                        <?php if(empty($value)){ ?>
-                        <caption><?php echo $label; ?><small>empty</small></caption>
-                        <?php } else { ?>
-                        <caption><?php echo $label; ?></caption>
-                        <tbody>
-                        <?php foreach ((array) $value as $key => $val) { ?>
-                        <tr>
-                            <td><?php echo htmlentities($key); ?></td>
-                            <td>
-                                <?php
-                            if(is_array($val) || is_object($val)){
-                                echo htmlentities(json_encode($val, JSON_PRETTY_PRINT));
-                            } else if(is_bool($val)) {
-                                echo $val ? 'true' : 'false';
-                            } else if(is_scalar($val)) {
-                                echo htmlentities($val);
-                            } else {
-                                echo 'Resource';
-                            }
-                        ?>
-                            </td>
-                        </tr>
-                        <?php } ?>
-                        </tbody>
-                        <?php } ?>
-                    </table>
-                    <?php } ?>
-                </div>
-                <?php } ?>
-
-                <?php if(!empty($tables)){ ?>
-                <div class="exception-var">
-                    <h2>Environment Variables</h2>
-                    <table>
-                        <caption><small>lebel</small></caption>
                         <tbody>
                         {{ range .Envs }}
                         <tr>
@@ -399,10 +284,27 @@ return implode(', ', $result);
                         </tbody>
                     </table>
                 </div>
-                <?php } ?>
-                <?php if(\think\facade\App::isDebug()) { ?>
+                {{ end }}
+                <!-- golang env output -->
+                {{ if .Debug }}
+                <div class="exception-var">
+                    <h2>Environment Variables</h2>
+                    <table>
+                        <tbody>
+                        {{ range .Envs }}
+                        <tr>
+                            <td>{{ .Key }}</td>
+                            <td>{{ .Value }}</td>
+                        </tr>
+                        {{ end }}
+                        </tbody>
+                    </table>
+                </div>
+                {{ end }}
+                <!-- code output js -->
+                {{ if .Debug }}
                 <script>
-                    var LINE = <?php echo $line; ?>;
+                    var LINE = 100;
 
                     function $(selector, node){
                         var elements;
@@ -488,7 +390,7 @@ return implode(', ', $result);
 
                     })();
                 </script>
-                <?php } ?>
+                {{ end }}
             </div>
         </div>
     </div>

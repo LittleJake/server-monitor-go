@@ -1,12 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
-	"github.com/LittleJake/server-monitor-go/controller"
-	"github.com/LittleJake/server-monitor-go/controller/api"
+	"github.com/LittleJake/server-monitor-go/internal/controller"
+	"github.com/LittleJake/server-monitor-go/internal/controller/api"
+	"github.com/LittleJake/server-monitor-go/internal/middleware"
+	"github.com/LittleJake/server-monitor-go/internal/util"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,7 +17,7 @@ func SetupRouter() *gin.Engine {
 	// parse bool from environment variable `WEB.IS_DEBUG`.
 	// Accepts common boolean string values like: 1, t, T, TRUE, true, True, 0, f, F, FALSE, false, False
 	isDebug := false
-	if b := GetEnvBool("IS_DEBUG", false); b {
+	if b := util.GetEnvBool("IS_DEBUG", false); b {
 		isDebug = b
 	}
 
@@ -31,9 +32,11 @@ func SetupRouter() *gin.Engine {
 
 	// Built-in middleware
 	r.Use(gin.Logger())
+	r.Use(middleware.ServerDataMiddleware())
 	// Use the default Recovery in debug mode so developers see panics.
 	// In non-debug (production) mode, use a custom recovery that renders
 	// a friendly error page instead of exposing stack traces.
+
 	if gin.IsDebugging() {
 		r.Use(gin.Recovery())
 	} else {
@@ -41,40 +44,11 @@ func SetupRouter() *gin.Engine {
 			c.HTML(http.StatusInternalServerError, "error.html", gin.H{})
 		}))
 	}
-
 	// In non-debug mode, route unknown paths and methods to the error page.
-	if !gin.IsDebugging() {
-		r.NoRoute(func(c *gin.Context) {
-			c.HTML(http.StatusNotFound, "error.html", gin.H{})
-		})
-		r.NoMethod(func(c *gin.Context) {
-			c.HTML(http.StatusMethodNotAllowed, "error.html", gin.H{})
-		})
-	} else {
-		data := map[string]interface{}{
-			"Envs": GetAllEnvs(),
-		}
-		r.NoRoute(func(c *gin.Context) {
-			data["Message"] = fmt.Sprintf("%s %s", c.Request.URL.String(), "Not Found")
-			c.HTML(http.StatusNotFound, "error.html", data)
-		})
-		r.NoMethod(func(c *gin.Context) {
-			data["Message"] = fmt.Sprintf("%s %s", c.Request.URL.String(), "Method Not Allowed")
-			c.HTML(http.StatusMethodNotAllowed, "error.html", data)
-		})
-	}
+	r.NoRoute(controller.Error.NoRouteError)
+	r.NoMethod(controller.Error.NoMethodError)
 
-	// Simple CORS middleware (for example purposes)
-	r.Use(func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		if c.Request.Method == http.MethodOptions {
-			c.AbortWithStatus(http.StatusNoContent)
-			return
-		}
-		c.Next()
-	})
+	r.Use(middleware.CORS)
 
 	r.GET("/", controller.Index.Index)
 
