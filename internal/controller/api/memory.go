@@ -1,9 +1,13 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
-	"github.com/LittleJake/server-monitor-go/redis"
+	"time"
+
+	"github.com/LittleJake/server-monitor-go/internal/util"
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 )
 
 type MemoryAPI struct{}
@@ -11,12 +15,29 @@ type MemoryAPI struct{}
 var Memory = MemoryAPI{}
 
 func (MemoryAPI) Get(c *gin.Context) {
-	data := redis.RedisGet(c.Request.Context(), redis.RedisClient, "memory")
+	uuid, ok := c.Params.Get("uuid")
+
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "uuid parameter is required",
+		})
+		return
+	}
+
+	data, err := util.RedisZRangeByScoreWithScores(
+		c.Request.Context(),
+		util.RedisClient,
+		"system_monitor:collection:"+uuid,
+		&redis.ZRangeBy{Min: "0", Max: fmt.Sprint(time.Now().Unix())},
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"users": []gin.H{
-			{"id": 1, "name": "alice"},
-			{"id": 2, "name": "bob"},
-		},
+		"memory": data,
 	})
 }

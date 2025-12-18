@@ -1,21 +1,27 @@
-package main
+package util
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/redis/go-redis/v9"
 )
 
-var redisClient *redis.Client
+// RedisClient is the global Redis client instance.
+// Initialize it in main() via SetupRedis() and close with CloseRedisClient().
+var RedisClient *redis.Client
 
 // NewRedisClient returns a configured Redis client.
-func NewRedisClient(addr, password string, db int) *redis.Client {
+func NewRedisClient(addr, password string, db int, t *tls.Config) *redis.Client {
 	return redis.NewClient(&redis.Options{
 		Addr:         addr,
 		Password:     password,
 		DB:           db,
+		TLSConfig:    t,
 		DialTimeout:  5 * time.Second,
 		ReadTimeout:  3 * time.Second,
 		WriteTimeout: 3 * time.Second,
@@ -73,6 +79,93 @@ func RedisSubscribe(ctx context.Context, r *redis.Client, channel string, handle
 // RedisClose closes the client connection.
 func RedisClose(r *redis.Client) error {
 	return r.Close()
+}
+
+// GetRedisClient returns the global Redis client.
+func GetRedisClient() *redis.Client {
+	return RedisClient
+}
+
+// buildTLSConfig builds a TLS configuration from environment variables.
+// Expected env vars:
+// REDIS_TLS_ENABLED (default: "false") - Enable TLS if "true"
+// REDIS_TLS_INSECURE (default: "false") - Skip certificate verification if "true"
+// REDIS_TLS_CERT_FILE - Path to client certificate (optional)
+// REDIS_TLS_KEY_FILE - Path to client key (optional)
+// REDIS_TLS_CA_FILE - Path to CA certificate (optional)
+func buildTLSConfig() (*tls.Config, error) {
+	if !GetEnvBool("REDIS_TLS_ENABLED", false) {
+		return nil, nil
+	}
+
+	tlsConfig := &tls.Config{
+		InsecureSkipVerify: GetEnvBool("REDIS_TLS_INSECURE", false),
+	}
+
+	// Load client certificate and key if provided
+	certFile := GetEnv("REDIS_TLS_CERT_FILE", "")
+	keyFile := GetEnv("REDIS_TLS_KEY_FILE", "")
+	if certFile != "" && keyFile != "" {
+		cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+		if err != nil {
+			return nil, fmt.Errorf("load tls cert/key: %w", err)
+		}
+		tlsConfig.Certificates = []tls.Certificate{cert}
+	}
+
+	// Load CA certificate if provided
+	caFile := GetEnv("REDIS_TLS_CA_FILE", "")
+	if caFile != "" {
+		caCert, err := os.ReadFile(caFile)
+		if err != nil {
+			return nil, fmt.Errorf("read ca cert: %w", err)
+		}
+		caCertPool := x509.NewCertPool()
+		if !caCertPool.AppendCertsFromPEM(caCert) {
+			return nil, fmt.Errorf("failed to parse ca cert")
+		}
+		tlsConfig.RootCAs = caCertPool
+	}
+
+	return tlsConfig, nil
+}
+
+// SetupRedis initializes the global Redis client using environment variables.
+// Expected env vars:
+// REDIS_HOST (default: 127.0.0.1), REDIS_PORT (default: 6379)
+// REDIS_PASSWORD (default: ""), REDIS_DB (default: 0)
+// TLS options (see buildTLSConfig)
+func SetupRedis() error {
+	addr := fmt.Sprintf("%s:%s",
+		GetEnv("REDIS_HOST", "127.0.0.1"),
+		GetEnv("REDIS_PORT", "6379"),
+	)
+	password := GetEnv("REDIS_PASSWORD", "")
+	db := GetEnvInt("REDIS_DB", 0)
+
+	// Build TLS config if enabled
+	tlsConfig, err := buildTLSConfig()
+	if err != nil {
+		return fmt.Errorf("build tls config: %w", err)
+	}
+
+	RedisClient = NewRedisClient(addr, password, db, tlsConfig)
+
+	// Test the connection
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := RedisPing(ctx, RedisClient); err != nil {
+		return fmt.Errorf("redis setup failed: %w", err)
+	}
+	return nil
+}
+
+// CloseRedisClient closes the global Redis client if it's initialized.
+func CloseRedisClient() error {
+	if RedisClient == nil {
+		return nil
+	}
+	return RedisClient.Close()
 }
 
 // RedisExists checks whether a key exists.
@@ -182,6 +275,15 @@ func RedisZRangeByScore(ctx context.Context, r *redis.Client, key string, opt *r
 	vals, err := r.ZRangeByScore(ctx, key, opt).Result()
 	if err != nil {
 		return nil, fmt.Errorf("redis zrangebyscore %q: %w", key, err)
+	}
+	return vals, nil
+}
+
+// RedisZRangeByScoreWithScores returns members with scores in a score range.
+func RedisZRangeByScoreWithScores(ctx context.Context, r *redis.Client, key string, opt *redis.ZRangeBy) ([]redis.Z, error) {
+	vals, err := r.ZRangeByScoreWithScores(ctx, key, opt).Result()
+	if err != nil {
+		return nil, fmt.Errorf("redis zrangebyscore with scores %q: %w", key, err)
 	}
 	return vals, nil
 }

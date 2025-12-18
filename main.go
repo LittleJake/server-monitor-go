@@ -1,29 +1,30 @@
 package main
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/LittleJake/server-monitor-go/internal/util"
 )
 
 // optional: minimal main to run the router
 func main() {
-	//load .env
+	// load .env
 	_ = util.LoadEnv()
+
+	// Setup Redis client and test connection
+	if err := util.SetupRedis(); err != nil {
+		log.Fatalf("Failed to setup Redis: %v", err)
+	}
+	defer func() {
+		if err := util.CloseRedisClient(); err != nil {
+			log.Printf("Error closing Redis: %v", err)
+		}
+	}()
 
 	r := SetupRouter()
 	// listen and serve on 0.0.0.0:8080
 	r.LoadHTMLGlob("view/**/*.html")
 
-	redisClient = NewRedisClient(
-		fmt.Sprintf("%s:%s",
-			util.GetEnv("REDIS_HOST", "127.0.0.1"),
-			util.GetEnv("REDIS_PORT", "6379"),
-		),
-		util.GetEnv("REDIS_PASSWORD", ""),
-		util.GetEnvInt("REDIS_DB", 0),
-	)
-
-	print("starting server.")
+	print("starting server on :8888")
 	_ = r.Run(":8888")
 }
