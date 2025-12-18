@@ -64,7 +64,6 @@ func SetupRouter() *gin.Engine {
 		_api.GET("/network/:uuid", api.Network.Get)
 		_api.GET("/io/:uuid", api.IO.Get)
 		_api.GET("/ping/:uuid", api.Ping.Get)
-		_api.GET("/swap/:uuid", api.Swap.Get)
 		_api.GET("/thermal/:uuid", api.Thermal.Get)
 		_api.GET("/report/:uuid", api.Report.Get)
 	}

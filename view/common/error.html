@@ -275,10 +275,10 @@
                     <h2>Exception Datas</h2>
                     <table>
                         <tbody>
-                        {{ range .Envs }}
+                        {{ range $key, $val := .Data }}
                         <tr>
-                            <td>{{ .Key }}</td>
-                            <td>{{ .Value }}</td>
+                            <td>{{ $key }}</td>
+                            <td>{{ $val }}</td>
                         </tr>
                         {{ end }}
                         </tbody>

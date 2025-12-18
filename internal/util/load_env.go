@@ -37,6 +37,15 @@ func GetEnvBool(key string, d bool) bool {
 	return d
 }
 
+func GetEnvInt(key string, d int) int {
+	v, exist := os.LookupEnv(key)
+	result, err := strconv.Atoi(v)
+	if err == nil && exist {
+		return result
+	}
+	return d
+}
+
 func GetAllEnvs() []Env {
 	envs := os.Environ()
 	res := make([]Env, 0, len(envs))

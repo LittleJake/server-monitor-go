@@ -14,6 +14,13 @@ func ServerDataMiddleware() gin.HandlerFunc {
 		s := map[string]interface{}{
 			"Debug": gin.IsDebugging(),
 			"Envs":  util.GetAllEnvs(),
+			"Data": map[string]interface{}{
+				"ClientIP": c.ClientIP(),
+				"Method":   c.Request.Method,
+				"Query":    c.Request.URL.Query(),
+				"Headers":  c.Request.Header,
+			},
+			"Request": c.Request,
 		}
 
 		c.Set(CtxServerDataKey, s)
