@@ -99,13 +99,13 @@
         <div class="mdui-panel-item-body">
                 <div class="mdui-col-lg-3">
                     <div class="mdui-container" style="overflow: auto; max-height: 50vh;">
-                        {volist name="latest['Disk']" id="row"}
+                        {{ range $key, $val := .latest.Disk }}
                         <div class="mdui-row">
-                            <h4>{$key}</h4>
-                            <p>{:sizeFormat($row.used)} / {:sizeFormat($row.total)}</p>
-                            <div id="disk_status_{$i}" class="line"></div>
+                            <h4>{{ $key }}</h4>
+                            <p>{{ $val.used | sizeFormat }} / {{ $val.total | sizeFormat }}</p>
+                            <div id="disk_status_{{ $key | hash }}" class="line"></div>
                         </div>
-                        {/volist}
+                        {{ end }}
                     </div>
                 </div>
                 <div class="mdui-col-lg-9">
@@ -228,9 +228,9 @@
     };
 
     //disk
-    // {volist name="latest['Disk']" id="row"}
-    // new ProgressBar.Line(disk_status_{$i}, bar_config).animate("{$row.percent / 100}");
-    // {/volist}
+    {{ range $key, $val := .latest.Disk }}
+    new ProgressBar.Line("#disk_status_{{ $key | hash }}", bar_config).animate({{ $val.percent }}/100);
+    {{ end }}
 
     new ProgressBar.Line(memory_status, bar_config).animate({{ .latest.Memory.Mem.Percent }}/100);
     new ProgressBar.Line(swap_status, bar_config).animate({{ .latest.Memory.Swap.Percent }}/100);

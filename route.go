@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/md5"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -161,6 +162,9 @@ func SetupRouter() *gin.Engine {
 			}
 
 			return fmt.Sprintf("%.2f MB", size)
+		},
+		"hash": func(v any) string {
+			return fmt.Sprintf("%x", md5.Sum([]byte(v.(string))))
 		},
 	})
 
