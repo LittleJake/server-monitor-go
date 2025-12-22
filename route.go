@@ -1,7 +1,12 @@
 package main
 
 import (
+	"fmt"
+	"html/template"
 	"net/http"
+	"reflect"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/LittleJake/server-monitor-go/internal/controller"
@@ -29,6 +34,135 @@ func SetupRouter() *gin.Engine {
 	}
 
 	r := gin.New()
+
+	r.SetFuncMap(template.FuncMap{
+		"upper": strings.ToUpper,
+		"lower": strings.ToLower,
+		"trim":  strings.TrimSpace,
+		// "json": func(v any) template.JS {
+		// 	b, _ := json.Marshal(v)
+		// 	return template.JS(b)
+		// },
+		"iconURL": func(v any) string {
+			url := "https://cdnjs.cloudflare.com/ajax/libs/simple-icons/14.3.0/"
+			icon := []string{
+				"redhat",
+				"centos",
+				"ubuntu",
+				"debian",
+				"windows",
+				"intel",
+				"amd",
+				"android",
+				"qualcomm",
+				"mediatek",
+				"alpine linux",
+				"arm",
+				"openwrt",
+				"qemu",
+				"raspberrypi",
+				//last
+				"linux",
+			}
+
+			for _, icon := range icon {
+				if strings.Contains(strings.ToLower(v.(string)), icon) {
+					return fmt.Sprintf("%s%s.svg", url, strings.ReplaceAll(strings.ReplaceAll(icon, " ", ""), ".", "dot"))
+				}
+			}
+
+			return "https://cdnjs.cloudflare.com/ajax/libs/simple-icons/14.3.0/linux.svg"
+		},
+		"iconName": func(v any) string {
+			icon := []string{
+				"redhat",
+				"centos",
+				"ubuntu",
+				"debian",
+				"windows",
+				"intel",
+				"amd",
+				"android",
+				"qualcomm",
+				"mediatek",
+				"alpine linux",
+				"arm",
+				"openwrt",
+				"qemu",
+				"raspberrypi",
+				//last
+				"linux",
+			}
+
+			for _, icon := range icon {
+				if strings.Contains(strings.ToLower(v.(string)), icon) {
+					return icon
+				}
+			}
+
+			return "linux"
+		},
+		"iconColor": func(v any) string {
+			icon := map[string]string{
+				"redhat":       "#EE0000",
+				"centos":       "#262577",
+				"ubuntu":       "#E95420",
+				"debian":       "#A81D33",
+				"windows":      "#0078D6",
+				"intel":        "#0071C5",
+				"amd":          "#ED1C24",
+				"android":      "#3DDC84",
+				"qualcomm":     "#3253DC",
+				"mediatek":     "#EC9430",
+				"alpine linux": "#0D597F",
+				"arm":          "#0091BD",
+				"openwrt":      "#00B5E2",
+				"qemu":         "#FF6600",
+				"raspberrypi":  "#A22846",
+
+				//last
+				"linux": "#FCC624",
+			}
+
+			for name, color := range icon {
+				if strings.Contains(strings.ToLower(v.(string)), name) {
+					return color
+				}
+			}
+
+			return "#FCC624"
+		},
+		"datetime": func(v any) string {
+			if reflect.TypeOf(v) == reflect.TypeOf(int64(0)) {
+				return time.Unix(v.(int64), 0).Format("2006-01-02 15:04:05")
+			}
+
+			if reflect.TypeOf(v) == reflect.TypeOf("") {
+				i, _ := strconv.ParseFloat(v.(string), 64)
+				return time.Unix(int64(i), 0).Format("2006-01-02 15:04:05")
+			}
+
+			return ""
+		},
+
+		"sizeFormat": func(v any) string {
+			size, _ := strconv.ParseFloat(v.(string), 64)
+			//input MB
+			if size > 1024*1024*1024 {
+				return fmt.Sprintf("%.2f PB", size*1.0/1024/1024/1024)
+			}
+
+			if size > 1024*1024 {
+				return fmt.Sprintf("%.2f TB", size*1.0/1024/1024)
+			}
+
+			if size > 1024 {
+				return fmt.Sprintf("%.2f GB", size*1.0/1024)
+			}
+
+			return fmt.Sprintf("%.2f MB", size)
+		},
+	})
 
 	// Built-in middleware
 	r.Use(gin.Logger())
@@ -66,6 +200,7 @@ func SetupRouter() *gin.Engine {
 		_api.GET("/ping/:uuid", api.Ping.Get)
 		_api.GET("/thermal/:uuid", api.Thermal.Get)
 		_api.GET("/report/:uuid", api.Report.Get)
+		_api.GET("/battery/:uuid", api.Battery.Get)
 	}
 
 	// Public routes
@@ -121,7 +256,7 @@ func SetupRouter() *gin.Engine {
 
 	// Admin group with simple basic-auth middleware example
 	admin := r.Group("/admin", gin.BasicAuth(gin.Accounts{
-		"admin": "password", // DON'T use hardcoded credentials in production
+		"admin": "password", // DON"T use hardcoded credentials in production
 	}))
 	{
 		admin.GET("/dashboard", func(c *gin.Context) {

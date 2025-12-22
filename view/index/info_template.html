@@ -44,35 +44,33 @@
         <div class="mdui-panel-item-body mdui-typo">
             <div class="mdui-col-xs-12 mdui-col-md-6">
                 <h4>{:lang("CPU")}</h4>
-                <?php $icon = getIcon($info['CPU']) ?>
-                <p class="mdui-valign"><span class="icon-{$icon[0]}"></span>{$info['CPU']|default='None'}</p>
-                <script>load_icon('{$icon[0]}','{$icon[1]}','{$icon[2]}')</script>
+                <p class="mdui-valign"><span class="icon-{{ index .info "CPU" | iconName }}"></span>{{ index .info "CPU" }}</p>
+                <script>load_icon({{ index .info "CPU" | iconName }},{{ index .info "CPU" | iconURL }}, {{ index .info "CPU" | iconColor }})</script>
                 <h4>{:lang("System Version")}</h4>
-                <?php $icon = getIcon($info['System Version']) ?>
-                <p class="mdui-valign"><span class="icon-{$icon[0]}"></span>{$info['System Version']|default='None'}</p>
-                <script>load_icon('{$icon[0]}','{$icon[1]}','{$icon[2]}')</script>
+                <p class="mdui-valign"><span class="icon-{{ index .info "System Version" | iconName }}"></span>{{ index .info "System Version" }}</p>
+                <script>load_icon({{ index .info "System Version" | iconName }},{{ index .info "System Version" | iconURL }}, {{ index .info "System Version" | iconColor }})</script>
                 <h4>{:lang("IPV4")}</h4>
-                <p>{$info['IPV4']|default='None'}</p>
+                <p>{{ index .info "IPV4" }}</p>
                 <h4>{:lang("IPV6")}</h4>
-                <p>{$info['IPV6']|default='None'}</p>
+                <p>{{ index .info "IPV6" }}</p>
                 <h4>{:lang("Location")}</h4>
-                <p class="mdui-valign"><span class="mdui-list-item-icon flag-icon flag-icon-{:empty($info['Country Code'])?'none':strtolower($info['Country Code'])}"></span>{$info['Country']}</p>
+                <p class="mdui-valign"><span class="mdui-list-item-icon flag-icon flag-icon-{{ index .info "Country Code" | lower }}"></span>{{ index .info "Country" }}</p>
                 <h4>{:lang("Agent Version")}</h4>
-                <p>{$info['Agent Version']|default='N/A'}</p>
+                <p>{{ index .info "Agent Version" }}</p>
             </div>
             <div class="mdui-col-xs-12 mdui-col-md-6">
                 <h4>{:lang("Process")}</h4>
-                <p>{$info['Process']|default="N/A"}</p>
+                <p>{{ index .info "Process" }}</p>
                 <h4>{:lang("Connection")}</h4>
-                <p>{$info['Connection']|default="N/A"}</p>
+                <p>{{ index .info "Connection"}}</p>
                 <h4>{:lang("Throughput")}</h4>
-                <p>{$info['Throughput']|default="Undefined"}</p>
+                <p>{{ index .info "Throughput"}}</p>
                 <h4>{:lang("Uptime")}</h4>
-                <p>{$info['Uptime']|default="N/A"}</p>
+                <p>{{ index .info "Uptime"}}</p>
                 <h4>{:lang("Load Average")}</h4>
-                <p>{$info['Load Average']|default="N/A"}</p>
+                <p>{{ index .info "Load Average"}}</p>
                 <h4>{:lang("Update Time")}</h4>
-                <p>{$info['Update Time']|date="Y-m-d H:i:s"}</p>
+                <p>{{ index .info "Update Time" | datetime }}</p>
             </div>
         </div>
     </div>
@@ -127,10 +125,10 @@
         <div class="mdui-panel-item-body">
             <div class="mdui-col-lg-3">
                 <h4>{:lang('Memory')}</h4>
-                <p>{:sizeFormat($latest['Memory']['Mem']['used'])} / {:sizeFormat($latest['Memory']['Mem']['total'])}</p>
+                <p>{{ .latest.Memory.Mem.Used | sizeFormat}} / {{ .latest.Memory.Mem.Total | sizeFormat }}</p>
                 <div id="memory_status" class="line"></div>
                 <h4>{:lang('Swap')}</h4>
-                <p>{:sizeFormat($latest['Memory']['Swap']['used'])} / {:sizeFormat($latest['Memory']['Swap']['total'])}</p>
+                <p>{{ .latest.Memory.Swap.Used | sizeFormat}} / {{ .latest.Memory.Swap.Total | sizeFormat }}</p>
                 <div id="swap_status" class="line"></div>
             </div>
             <div class="mdui-col-lg-9">
@@ -233,12 +231,12 @@
     // {volist name="latest['Disk']" id="row"}
     // new ProgressBar.Line(disk_status_{$i}, bar_config).animate("{$row.percent / 100}");
     // {/volist}
-    
-    new ProgressBar.Line(memory_status, bar_config).animate("{$latest['Memory']['Mem']['percent']/100}");
-    new ProgressBar.Line(swap_status, bar_config).animate("{$latest['Memory']['Swap']['percent']/100}");
+
+    new ProgressBar.Line(memory_status, bar_config).animate({{ .latest.Memory.Mem.Percent }}/100);
+    new ProgressBar.Line(swap_status, bar_config).animate({{ .latest.Memory.Swap.Percent }}/100);
 
     $.ajax({
-        url: "{:url('api/network/get', ['uuid' => $uuid])}", method: "get", dataType: 'json',
+        url: {{ printf "%s/api/network/%s" .base_url .uuid | js }} , method: "get", dataType: 'json',
         async: true,
         success: function(e){
             let option = {
@@ -278,7 +276,7 @@
         error: function () {document.getElementById('network-collection').parentNode.innerHTML="Fail to load network data.";}
     });
     $.ajax({
-        url: "{:url('api/iO/get', ['uuid' => $uuid])}", method: "get", dataType: 'json',
+        url:  {{ printf "%s/api/io/%s" .base_url .uuid | js }} , method: "get", dataType: 'json',
         async: true,
         success: function(e){
             let option = {
@@ -325,7 +323,7 @@
         error: function () {document.getElementById('io-collection').parentNode.innerHTML="Fail to load IO data.";}
     });
     $.ajax({
-        url: "{:url('api/disk/get', ['uuid' => $uuid])}", method: "get", dataType: 'json',
+        url: {{ printf "%s/api/disk/%s" .base_url .uuid | js }} , method: "get", dataType: 'json',
         async: true,
         success: function(e){
             let option = {
@@ -357,7 +355,7 @@
     });
 
     $.ajax({
-        url: "/api/memory/{{ .uuid }}", method: "get", dataType: 'json',
+        url: {{ printf "%s/api/memory/%s" .base_url .uuid | js }}, method: "get", dataType: 'json',
         async: true,
         success: function(e){
             let option = {
@@ -388,7 +386,7 @@
         error: function () {document.getElementById('memory-collection').parentNode.innerHTML="Fail to load memory data.";}
     });
     $.ajax({
-        url: "{:url('api/cpu/get', ['uuid' => $uuid])}", method: "get", dataType: 'json',
+        url: {{ printf "%s/api/cpu/%s" .base_url .uuid | js }}, method: "get", dataType: 'json',
         async: true,
         success: function(e){
             let option = {
@@ -418,7 +416,7 @@
     });
 
     $.ajax({
-        url: "{:url('api/thermal/get', ['uuid' => $uuid])}", method: "get", dataType: 'json',
+        url: {{ printf "%s/api/thermal/%s" .base_url .uuid | js }}, method: "get", dataType: 'json',
         async: true,
         success: function(e){
             if (e.value.length === 0){
@@ -459,7 +457,7 @@
 
     
     $.ajax({
-        url: "{:url('api/battery/get', ['uuid' => $uuid])}", method: "get", dataType: 'json',
+        url: {{ printf "%s/api/battery/%s" .base_url .uuid | js }}, method: "get", dataType: 'json',
         async: true,
         success: function(e){
             if (e.value.length === 0){
@@ -498,7 +496,7 @@
     
 
     $.ajax({
-        url: "{:url('api/ping/get', ['uuid' => $uuid])}", method: "get", dataType: 'json',
+        url: {{ printf "%s/api/ping/%s" .base_url .uuid | js }}, method: "get", dataType: 'json',
         async: true,
         success: function(e){
             if (e.value.length === 0){
