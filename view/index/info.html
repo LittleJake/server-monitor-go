@@ -17,7 +17,8 @@
         <div class="mdui-toolbar-spacer"></div>
     </div>
 </div>
-{include file='index@index/js_template' /}
-{include file='index@index/info_template' /}
+{{ template "js_template.html" . }}
+
+{{ template "info_template.html" . }}
 </body>
 </html>

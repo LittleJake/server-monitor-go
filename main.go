@@ -21,10 +21,12 @@ func main() {
 		}
 	}()
 
+	util.SetupCollectionCache()
+
 	r := SetupRouter()
 	// listen and serve on 0.0.0.0:8080
 	r.LoadHTMLGlob("view/**/*.html")
 
 	print("starting server on :8888")
-	_ = r.Run(":8888")
+	_ = r.Run("127.0.0.1:8888")
 }

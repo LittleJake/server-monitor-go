@@ -1,13 +1,10 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/LittleJake/server-monitor-go/internal/util"
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
 )
 
 type MemoryAPI struct{}
@@ -24,20 +21,13 @@ func (MemoryAPI) Get(c *gin.Context) {
 		return
 	}
 
-	data, err := util.RedisZRangeByScoreWithScores(
-		c.Request.Context(),
-		util.RedisClient,
-		"system_monitor:collection:"+uuid,
-		&redis.ZRangeBy{Min: "0", Max: fmt.Sprint(time.Now().Unix())},
-	)
+	result, err := util.GetCollection(uuid)
+	memory := util.CollectionFormat(result, "Memory")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"memory": data,
-	})
+	c.JSON(http.StatusOK, memory)
 }

@@ -1,3 +1,4 @@
+{{define "info_template.html"}}
 <style>
     .line {
         margin: 20px;
@@ -229,9 +230,9 @@
     };
 
     //disk
-    {volist name="latest['Disk']" id="row"}
-    new ProgressBar.Line(disk_status_{$i}, bar_config).animate("{$row.percent / 100}");
-    {/volist}
+    // {volist name="latest['Disk']" id="row"}
+    // new ProgressBar.Line(disk_status_{$i}, bar_config).animate("{$row.percent / 100}");
+    // {/volist}
     
     new ProgressBar.Line(memory_status, bar_config).animate("{$latest['Memory']['Mem']['percent']/100}");
     new ProgressBar.Line(swap_status, bar_config).animate("{$latest['Memory']['Swap']['percent']/100}");
@@ -356,7 +357,7 @@
     });
 
     $.ajax({
-        url: "{:url('api/memory/get', ['uuid' => $uuid])}", method: "get", dataType: 'json',
+        url: "/api/memory/{{ .uuid }}", method: "get", dataType: 'json',
         async: true,
         success: function(e){
             let option = {
@@ -544,3 +545,4 @@
         ctx_thermal && ctx_thermal.resize();
     };
 </script>
+{{end}}

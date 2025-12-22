@@ -108,7 +108,7 @@
         <p>{:lang('License')}</p>
     </div>
 </div>
-{include file='index@index/js_template' /}
+{{ template "js_template.html" . }}
 <script>
     var refreshLock = false;
     function refresh() {

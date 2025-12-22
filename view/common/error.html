@@ -281,6 +281,12 @@
                             <td>{{ $val }}</td>
                         </tr>
                         {{ end }}
+                        {{ range $key, $val := .Headers }}
+                        <tr>
+                            <td>{{ $key }}</td>
+                            <td>{{ $val }}</td>
+                        </tr>
+                        {{ end }}
                         </tbody>
                     </table>
                 </div>
