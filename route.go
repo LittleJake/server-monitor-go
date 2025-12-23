@@ -14,6 +14,8 @@ import (
 	"github.com/LittleJake/server-monitor-go/internal/controller/api"
 	"github.com/LittleJake/server-monitor-go/internal/middleware"
 	"github.com/LittleJake/server-monitor-go/internal/util"
+	"github.com/elliotchance/orderedmap/v3"
+	"github.com/gin-contrib/i18n"
 
 	"github.com/gin-gonic/gin"
 )
@@ -35,6 +37,11 @@ func SetupRouter() *gin.Engine {
 	}
 
 	r := gin.New()
+
+	// Built-in middleware
+	r.Use(gin.Logger())
+	r.Use(middleware.ServerDataMiddleware())
+	r.Use(middleware.GinI18nLocalize())
 
 	r.SetFuncMap(template.FuncMap{
 		"upper": strings.ToUpper,
@@ -166,11 +173,20 @@ func SetupRouter() *gin.Engine {
 		"hash": func(v any) string {
 			return fmt.Sprintf("%x", md5.Sum([]byte(v.(string))))
 		},
+		"locale": i18n.GetMessage,
+		"count": func(v any) int {
+			if reflect.TypeOf(v) == reflect.TypeOf([]string{}) {
+				return len(v.([]string))
+			}
+			if reflect.TypeOf(v) == reflect.TypeOf(map[string]interface{}{}) {
+				return len(v.(map[string]interface{}))
+			}
+			if reflect.TypeOf(v) == reflect.TypeOf(orderedmap.OrderedMap[any, any]{}) {
+				return v.(*orderedmap.OrderedMap[any, any]).Len()
+			}
+			return 0
+		},
 	})
-
-	// Built-in middleware
-	r.Use(gin.Logger())
-	r.Use(middleware.ServerDataMiddleware())
 	// Use the default Recovery in debug mode so developers see panics.
 	// In non-debug (production) mode, use a custom recovery that renders
 	// a friendly error page instead of exposing stack traces.
@@ -192,6 +208,7 @@ func SetupRouter() *gin.Engine {
 
 	// Info routes
 	r.GET("/info/:uuid", controller.Index.Info)
+	r.GET("/list/", controller.Index.List)
 
 	// API group
 	_api := r.Group("/api")
@@ -220,43 +237,6 @@ func SetupRouter() *gin.Engine {
 		// placeholder for real metrics
 		c.JSON(http.StatusOK, gin.H{"requests": 1234})
 	})
-
-	// API group
-	api := r.Group("/api")
-	{
-		users := api.Group("/users")
-		{
-			// list users
-			users.GET("", func(c *gin.Context) {
-				c.JSON(http.StatusOK, gin.H{
-					"users": []gin.H{
-						{"id": 1, "name": "alice"},
-						{"id": 2, "name": "bob"},
-					},
-				})
-			})
-
-			// create user
-			type createUserReq struct {
-				Name string `json:"name" binding:"required"`
-			}
-			users.POST("", func(c *gin.Context) {
-				var req createUserReq
-				if err := c.ShouldBindJSON(&req); err != nil {
-					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-					return
-				}
-				// fake created user
-				c.JSON(http.StatusCreated, gin.H{"id": 3, "name": req.Name})
-			})
-
-			// get user by id
-			users.GET("/:id", func(c *gin.Context) {
-				id := c.Param("id")
-				c.JSON(http.StatusOK, gin.H{"id": id, "name": "example"})
-			})
-		}
-	}
 
 	// Admin group with simple basic-auth middleware example
 	admin := r.Group("/admin", gin.BasicAuth(gin.Accounts{

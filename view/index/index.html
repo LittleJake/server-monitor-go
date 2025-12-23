@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{:lang("Server Monitor")}</title>
+    <title>{{ locale .Context "0000039" }}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.4.6/css/flag-icon.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mdui/1.0.2/css/mdui.min.css">
     <link rel="manifest" href="/manifest.json">
@@ -19,7 +19,7 @@
         <span class="mdui-btn mdui-btn-icon mdui-ripple mdui-ripple-white" mdui-drawer="{target:'#drawer', swipe:true, overlay: false}">
             <i class="mdui-icon material-icons">menu</i>
         </span>
-        <a href="{:url('/')}" class="mdui-typo-headline">{:lang("Server Monitor")}</a>
+        <a href={{ .base_url }} class="mdui-typo-headline">{{ locale .Context "0000039" }}</a>
         <div class="mdui-toolbar-spacer"></div>
         <span class="mdui-btn mdui-btn-icon mdui-ripple" mdui-tooltip="{content: 'Refresh'}" id="refresh">
             <i class="mdui-icon material-icons">&#xe5d5;</i>
@@ -31,58 +31,54 @@
 </div>
 <div class="mdui-drawer" id="drawer">
     <div class="mdui-list" mdui-collapse="{accordion: false}">
-        <div class="mdui-list-item mdui-ripple mdui-p-l-2 ajax-load" data-href="{:url('index/index/list')}">
+        <div class="mdui-list-item mdui-ripple mdui-p-l-2 ajax-load" data-href={{ printf "%s/list/" .base_url | js }}>
             <i class="mdui-list-item-icon mdui-icon material-icons mdui-text-color-theme">&#xe8ef;</i>
-            <div class="mdui-list-item-content">{:lang("Server List")}</div>
+            <div class="mdui-list-item-content">{{ locale .Context "0000040" }}</div>
         </div>
         <div class="mdui-collapse-item">
             <div class="mdui-collapse-item-header mdui-list-item mdui-ripple">
                 <i class="mdui-list-item-icon mdui-icon material-icons mdui-text-color-theme">&#xe30a;</i>
-                <div class="mdui-list-item-content">{:lang("Online")} ({:count($online)})</div>
+                <div class="mdui-list-item-content">{{ locale .Context "0000041" }} ({{ count .online }})</div>
                 <i class="mdui-collapse-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
             </div>
             <div class="mdui-collapse-item-body mdui-list">
-                {volist name="online" id="v"}
-                {if !isset($hide[$key])}
-                <div class="mdui-list-item mdui-ripple mdui-p-l-2 ajax-load" data-href="{:url('index/index/info',['uuid'=>$key])}">
-                    <span class="mdui-list-item-icon flag-icon flag-icon-{:empty($v['Country Code'])?'none':strtolower($v['Country Code'])}"></span>
+                {{ range $uuid, $latest := .online }}
+                <div class="mdui-list-item mdui-ripple mdui-p-l-2 ajax-load" data-href={{ printf "%s/info/%s" $.base_url $uuid | js }}>
+                    <span class="mdui-list-item-icon flag-icon flag-icon-{{ index $.info $uuid "Country Code" | lower }}"></span>
                     <div class="mdui-list-item-content">
                         <div class="mdui-list-item-title">
-                            {:empty($names[$key])?$v['IPV4']:$names[$key]}
+                            {{ index $.info $uuid "IPV4" }}
                         </div>
                         <div class="mdui-list-item-text mdui-list-item-one-line">
-                            {$v['Country']}
+                            {{ index $.info $uuid "Country" }}
                         </div>
                     </div>
                     <i class="mdui-icon material-icons mdui-text-color-green">&#xe2bf;</i>
                 </div>
-                {/if}
-                {/volist}
+                {{ end }}
             </div>
         </div>
         <div class="mdui-collapse-item">
             <div class="mdui-collapse-item-header mdui-list-item mdui-ripple">
                 <i class="mdui-list-item-icon mdui-icon material-icons mdui-text-color-theme-accent">&#xe30a;</i>
-                <div class="mdui-list-item-content">{:lang("Offline")} ({:count($offline)})</div>
+                <div class="mdui-list-item-content">{{ locale .Context "0000042" }} ({{ count .offline }})</div>
                 <i class="mdui-collapse-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
             </div>
             <div class="mdui-collapse-item-body mdui-list">
-                {volist name="offline" id="v"}
-                {if !isset($hide[$key])}
-                <div class="mdui-list-item mdui-ripple mdui-p-l-2 ajax-load" data-href="{:url('index/index/info',['uuid'=>$key])}">
-                    <span class="mdui-list-item-icon flag-icon flag-icon-{:empty($v['Country Code'])?'none':strtolower($v['Country Code'])}"></span>
+                {{ range $uuid, $latest := .offline }}
+                <div class="mdui-list-item mdui-ripple mdui-p-l-2 ajax-load" data-href={{ printf "%s/info/%s" $.base_url $uuid | js }}>
+                    <span class="mdui-list-item-icon flag-icon flag-icon-{{ index $.info $uuid "Country Code" | lower }}"></span>
                     <div class="mdui-list-item-content">
                         <div class="mdui-list-item-title">
-                            {:empty($names[$key])?$v['IPV4']:$names[$key]}
+                            {{ index $.info $uuid "IPV4" }}
                         </div>
                         <div class="mdui-list-item-text mdui-list-item-one-line">
-                            {$v['Country']|default="Unknown"}
+                            {{ index $.info $uuid "Country" }}
                         </div>
                     </div>
                     <i class="mdui-icon material-icons mdui-text-color-red">&#xe2c1;</i>
                 </div>
-                {/if}
-                {/volist}
+                {{ end }}
             </div>
         </div>
     </div>
@@ -92,7 +88,7 @@
         <div class="mdui-panel-item mdui-panel-item-open">
             <div class="mdui-panel-item-header">
                 <i class="mdui-icon material-icons">&#xe88f;</i>
-                <div class="mdui-panel-item-title">{:lang('About')}</div>
+                <div class="mdui-panel-item-title">{{ locale .Context "0000043" }}</div>
             </div>
             <div class="mdui-panel-item-body">
                 <h2>Server Monitor</h2>
@@ -105,7 +101,7 @@
 <div class="bottom-nav mdui-color-theme">
     <div class="nav-text">
         <p>LittleJake, 2020. </p>
-        <p>{:lang('License')}</p>
+        <p>{{ locale .Context "0000044" }}</p>
     </div>
 </div>
 {{ template "js_template.html" . }}

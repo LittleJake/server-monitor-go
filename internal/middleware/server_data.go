@@ -17,7 +17,6 @@ func ServerDataMiddleware() gin.HandlerFunc {
 				"Method":   c.Request.Method,
 				"Query":    c.Request.URL.Query(),
 			},
-			"Headers": c.Request.Header,
 			"Request": c.Request,
 		}
 

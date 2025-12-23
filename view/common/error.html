@@ -281,7 +281,7 @@
                             <td>{{ $val }}</td>
                         </tr>
                         {{ end }}
-                        {{ range $key, $val := .Headers }}
+                        {{ range $key, $val := .Request.Header }}
                         <tr>
                             <td>{{ $key }}</td>
                             <td>{{ $val }}</td>

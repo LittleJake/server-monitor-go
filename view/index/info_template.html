@@ -37,39 +37,39 @@
     <div class="mdui-panel-item mdui-panel-item-open">
         <div class="mdui-panel-item-header">
             <i class="mdui-icon material-icons">&#xe88e;</i>
-            <div class="mdui-panel-item-title">{:lang("System Info")}</div>
-            <div class="mdui-panel-item-summary">{:lang("System Info Description")}</div>
+            <div class="mdui-panel-item-title">{{locale .Context "0000001"}}</div>
+            <div class="mdui-panel-item-summary">{{locale .Context "0000002"}}</div>
             <i class="mdui-panel-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
         </div>
         <div class="mdui-panel-item-body mdui-typo">
             <div class="mdui-col-xs-12 mdui-col-md-6">
-                <h4>{:lang("CPU")}</h4>
+                <h4>{{locale .Context "0000011"}}</h4>
                 <p class="mdui-valign"><span class="icon-{{ index .info "CPU" | iconName }}"></span>{{ index .info "CPU" }}</p>
                 <script>load_icon({{ index .info "CPU" | iconName }},{{ index .info "CPU" | iconURL }}, {{ index .info "CPU" | iconColor }})</script>
-                <h4>{:lang("System Version")}</h4>
+                <h4>{{locale .Context "0000012"}}</h4>
                 <p class="mdui-valign"><span class="icon-{{ index .info "System Version" | iconName }}"></span>{{ index .info "System Version" }}</p>
                 <script>load_icon({{ index .info "System Version" | iconName }},{{ index .info "System Version" | iconURL }}, {{ index .info "System Version" | iconColor }})</script>
-                <h4>{:lang("IPV4")}</h4>
+                <h4>{{locale .Context "0000013"}}</h4>
                 <p>{{ index .info "IPV4" }}</p>
-                <h4>{:lang("IPV6")}</h4>
+                <h4>{{locale .Context "0000014"}}</h4>
                 <p>{{ index .info "IPV6" }}</p>
-                <h4>{:lang("Location")}</h4>
+                <h4>{{locale .Context "0000015"}}</h4>
                 <p class="mdui-valign"><span class="mdui-list-item-icon flag-icon flag-icon-{{ index .info "Country Code" | lower }}"></span>{{ index .info "Country" }}</p>
-                <h4>{:lang("Agent Version")}</h4>
+                <h4>{{locale .Context "0000016"}}</h4>
                 <p>{{ index .info "Agent Version" }}</p>
             </div>
             <div class="mdui-col-xs-12 mdui-col-md-6">
-                <h4>{:lang("Process")}</h4>
+                <h4>{{locale .Context "0000017"}}</h4>
                 <p>{{ index .info "Process" }}</p>
-                <h4>{:lang("Connection")}</h4>
+                <h4>{{locale .Context "0000018"}}</h4>
                 <p>{{ index .info "Connection"}}</p>
-                <h4>{:lang("Throughput")}</h4>
+                <h4>{{locale .Context "0000019"}}</h4>
                 <p>{{ index .info "Throughput"}}</p>
-                <h4>{:lang("Uptime")}</h4>
+                <h4>{{locale .Context "0000020"}}</h4>
                 <p>{{ index .info "Uptime"}}</p>
-                <h4>{:lang("Load Average")}</h4>
+                <h4>{{locale .Context "0000021"}}</h4>
                 <p>{{ index .info "Load Average"}}</p>
-                <h4>{:lang("Update Time")}</h4>
+                <h4>{{locale .Context "0000022"}}</h4>
                 <p>{{ index .info "Update Time" | datetime }}</p>
             </div>
         </div>
@@ -77,7 +77,7 @@
     <div class="mdui-panel-item mdui-panel-item-open">
         <div class="mdui-panel-item-header">
             <i class="mdui-icon material-icons">&#xe24b;</i>
-            <div class="mdui-panel-item-title">{:lang("CPU Load")}</div>
+            <div class="mdui-panel-item-title">{{locale .Context "0000023"}}</div>
             <i class="mdui-panel-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
         </div>
         <div class="mdui-panel-item-body">
@@ -93,17 +93,17 @@
     <div class="mdui-panel-item mdui-panel-item-open">
         <div class="mdui-panel-item-header">
             <i class="mdui-icon material-icons">&#xe1db;</i>
-            <div class="mdui-panel-item-title">{:lang("Storage")}</div>
+            <div class="mdui-panel-item-title">{{locale .Context "0000027"}}</div>
             <i class="mdui-panel-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
         </div>
         <div class="mdui-panel-item-body">
                 <div class="mdui-col-lg-3">
                     <div class="mdui-container" style="overflow: auto; max-height: 50vh;">
-                        {{ range $key, $val := .latest.Disk }}
+                        {{ range $mountpoint, $stat := .latest.Disk }}
                         <div class="mdui-row">
-                            <h4>{{ $key }}</h4>
-                            <p>{{ $val.used | sizeFormat }} / {{ $val.total | sizeFormat }}</p>
-                            <div id="disk_status_{{ $key | hash }}" class="line"></div>
+                            <h4>{{ $mountpoint }}</h4>
+                            <p>{{ $stat.used | sizeFormat }} / {{ $stat.total | sizeFormat }}</p>
+                            <div id="disk_status_{{ $mountpoint | hash }}" class="line"></div>
                         </div>
                         {{ end }}
                     </div>
@@ -118,16 +118,16 @@
     <div class="mdui-panel-item mdui-panel-item-open">
         <div class="mdui-panel-item-header">
             <i class="mdui-icon material-icons">&#xe322;</i>
-            <div class="mdui-panel-item-title">{:lang("Memory")}</div>
-            <div class="mdui-panel-item-summary">{:lang("Memory Description")}</div>
+            <div class="mdui-panel-item-title">{{locale .Context "0000024"}}</div>
+            <div class="mdui-panel-item-summary">{{locale .Context "0000025"}}</div>
             <i class="mdui-panel-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
         </div>
         <div class="mdui-panel-item-body">
             <div class="mdui-col-lg-3">
-                <h4>{:lang('Memory')}</h4>
+                <h4>{{locale .Context "0000024"}}</h4>
                 <p>{{ .latest.Memory.Mem.Used | sizeFormat}} / {{ .latest.Memory.Mem.Total | sizeFormat }}</p>
                 <div id="memory_status" class="line"></div>
-                <h4>{:lang('Swap')}</h4>
+                <h4>{{locale .Context "0000028"}}</h4>
                 <p>{{ .latest.Memory.Swap.Used | sizeFormat}} / {{ .latest.Memory.Swap.Total | sizeFormat }}</p>
                 <div id="swap_status" class="line"></div>
             </div>
@@ -141,8 +141,8 @@
     <div class="mdui-panel-item mdui-panel-item-open">
         <div class="mdui-panel-item-header">
             <i class="mdui-icon material-icons">&#xe640;</i>
-            <div class="mdui-panel-item-title">{:lang("Network")}</div>
-            <div class="mdui-panel-item-summary">{:lang("Network Description")}</div>
+            <div class="mdui-panel-item-title">{{locale .Context "0000026"}}</div>
+            <div class="mdui-panel-item-summary">{{locale .Context "0000029"}}</div>
             <i class="mdui-panel-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
         </div>
         <div class="mdui-panel-item-body">
@@ -156,8 +156,8 @@
     <div class="mdui-panel-item mdui-panel-item-open">
         <div class="mdui-panel-item-header">
             <i class="mdui-icon material-icons">&#xe640;</i>
-            <div class="mdui-panel-item-title">{:lang("Disk I/O")}</div>
-            <div class="mdui-panel-item-summary">{:lang("Disk I/O Data")}</div>
+            <div class="mdui-panel-item-title">{{locale .Context "0000030"}}</div>
+            <div class="mdui-panel-item-summary">{{locale .Context "0000031"}}</div>
             <i class="mdui-panel-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
         </div>
         <div class="mdui-panel-item-body">
@@ -171,8 +171,8 @@
     <div class="mdui-panel-item mdui-panel-item-open">
         <div class="mdui-panel-item-header">
             <i class="mdui-icon material-icons" style="color: #5dd8ff;">&#xeb3b;</i>
-            <div class="mdui-panel-item-title">{:lang("Thermal")}</div>
-            <div class="mdui-panel-item-summary">{:lang("Thermal Sensor")}</div>
+            <div class="mdui-panel-item-title">{{locale .Context "0000032"}}</div>
+            <div class="mdui-panel-item-summary">{{locale .Context "0000033"}}</div>
             <i class="mdui-panel-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
         </div>
         <div class="mdui-panel-item-body">
@@ -186,8 +186,8 @@
     <div class="mdui-panel-item mdui-panel-item-open">
         <div class="mdui-panel-item-header">
             <i class="mdui-icon material-icons" style="color: #009032;">&#xe1a5;</i>
-            <div class="mdui-panel-item-title">{:lang("Battery")}</div>
-            <div class="mdui-panel-item-summary">{:lang("Battery Sensor")}</div>
+            <div class="mdui-panel-item-title">{{locale .Context "0000034"}}</div>
+            <div class="mdui-panel-item-summary">{{locale .Context "0000035"}}</div>
             <i class="mdui-panel-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
         </div>
         <div class="mdui-panel-item-body">
@@ -201,8 +201,8 @@
     <div class="mdui-panel-item mdui-panel-item-open">
         <div class="mdui-panel-item-header">
             <i class="mdui-icon material-icons" style="color: #900088;">&#xe01b;</i>
-            <div class="mdui-panel-item-title">{:lang("Ping")}</div>
-            <div class="mdui-panel-item-summary">{:lang("Ping View")}</div>
+            <div class="mdui-panel-item-title">{{locale .Context "0000036"}}</div>
+            <div class="mdui-panel-item-summary">{{locale .Context "0000037"}}</div>
             <i class="mdui-panel-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
         </div>
         <div class="mdui-panel-item-body">
@@ -217,7 +217,7 @@
 <script>
     var ctx_battery, ctx_cpu, ctx_disk, ctx_mem, ctx_network, ctx_ping, ctx_io, ctx_thermal;
     var bar_config = {
-            strokeWidth: 4, easing: 'easeInOut', duration: 1400, color: '#33cc33', trailColor: '#eee', trailWidth: 1,
+            strokeWidth: 2, easing: 'easeInOut', duration: 1400, color: '#33cc33', trailColor: '#eee', trailWidth: 1,
             svgStyle: {width: '100%', height: '100%'},
             text: {
                 style: {color: '#000', position: 'absolute', right: '0', top: '15px', padding: 0, margin: 0, transform: null},
@@ -228,8 +228,8 @@
     };
 
     //disk
-    {{ range $key, $val := .latest.Disk }}
-    new ProgressBar.Line("#disk_status_{{ $key | hash }}", bar_config).animate({{ $val.percent }}/100);
+    {{ range $mountpoint, $stat := .latest.Disk }}
+    new ProgressBar.Line("#disk_status_{{ $mountpoint | hash }}", bar_config).animate({{ $stat.percent }}/100);
     {{ end }}
 
     new ProgressBar.Line(memory_status, bar_config).animate({{ .latest.Memory.Mem.Percent }}/100);
@@ -280,7 +280,7 @@
         async: true,
         success: function(e){
             let option = {
-                title: {text:"Disk I/O", left: 'center'},
+                title: {text: {{locale .Context "0000030"}}, left: 'center'},
                 tooltip: {trigger: 'axis', axisPointer: {type: 'cross', label: {backgroundColor: '#6a7985'}}},
                 legend: {bottom: 50, data: ['Read Counts(k)', 'Read Throughput (MB)', 'Read Time (ms)', 'Write Counts(k)', 'Write Throughput (MB)', 'Write Time (ms)',]},
                 grid: [{height: '60%'}, {height: '60%'}],
@@ -328,7 +328,7 @@
         success: function(e){
             let option = {
                 tooltip: {trigger: 'axis'},
-                title: {left: 'center', text: '{:lang("Storage")}'},
+                title: {left: 'center', text: {{locale .Context "0000027"}}},
                 xAxis: {type: 'category', boundaryGap: false, data: e.time},
                 yAxis: {type: 'value',axisLabel: {formatter: '{value} MB'},},
                 dataZoom: [{type: 'inside', start: 70, end: 100}, {
@@ -360,7 +360,7 @@
         success: function(e){
             let option = {
                 tooltip: {trigger: 'axis'},
-                title: {left: 'center', text: '{:lang("Memory")}'},
+                title: {left: 'center', text: {{locale .Context "0000024"}}},
                 xAxis: {type: 'category', boundaryGap: false, data: e.time},
                 yAxis: {type: 'value',axisLabel: {formatter: '{value} MB'},},
                 dataZoom: [{type: 'inside', start: 70, end: 100}, {
@@ -391,7 +391,7 @@
         success: function(e){
             let option = {
                 tooltip: {trigger: 'axis'},
-                title: {left: 'center', text: '{:lang("CPU Load")}'},
+                title: {left: 'center', text: {{locale .Context "0000023"}}},
                 xAxis: {type: 'category', boundaryGap: false, data: e.time},
                 yAxis: {type: 'value',axisLabel: {formatter: '{value} %'}},
                 dataZoom: [{type: 'inside', start: 70, end: 100}, {
@@ -426,7 +426,7 @@
 
             let option = {
                 tooltip: {trigger: 'axis'},
-                title: {left: 'center', text: '{:lang("Thermal Sensor")}'},
+                title: {left: 'center', text: {{locale .Context "0000033"}}},
                 xAxis: {type: 'category', boundaryGap: false, data: e.time},
                 yAxis: {
                     type: 'value',
@@ -467,7 +467,7 @@
 
             let option = {
                 tooltip: {trigger: 'axis'},
-                title: {left: 'center', text: '{:lang("Battery Sensor")}'},
+                title: {left: 'center', text: {{locale .Context "0000035"}}},
                 xAxis: {type: 'category', boundaryGap: false, data: e.time},
                 yAxis: {type: 'value', axisLabel: {formatter: '{value} %'}},
                 dataZoom: [{type: 'inside', start: 70, end: 100}, {
@@ -506,7 +506,7 @@
 
             let option = {
                 tooltip: {trigger: 'axis'},
-                title: {left: 'center', text: '{:lang("Ping Sensor")}'},
+                title: {left: 'center', text: {{locale .Context "0000038"}}},
                 xAxis: {type: 'category', boundaryGap: false, data: e.time},
                 yAxis: {type: 'value', axisLabel: {formatter: '{value} ms'}},
                 dataZoom: [{type: 'inside', start: 70, end: 100}, {

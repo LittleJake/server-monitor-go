@@ -23,6 +23,7 @@ func main() {
 
 	util.SetupCollectionCache()
 	util.SetupMapStringCache()
+	util.SetupCollectionStatusCache()
 
 	r := SetupRouter()
 	// listen and serve on 0.0.0.0:8080

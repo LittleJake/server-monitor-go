@@ -13,9 +13,9 @@ import (
 )
 
 type CollectionData struct {
-	Battery []interface{}                     `json:"Battery"`
+	Battery json.RawMessage                   `json:"Battery"`
 	Disk    map[string]map[string]interface{} `json:"Disk"`
-	Fan     []interface{}                     `json:"Fan"`
+	Fan     json.RawMessage                   `json:"Fan"`
 	Io      struct {
 		Read struct {
 			Count int `json:"count"`
@@ -53,7 +53,7 @@ type CollectionData struct {
 			Packets int `json:"packets"`
 		} `json:"TX"`
 	} `json:"Network"`
-	Ping    []interface{}          `json:"Ping"`
+	Ping    json.RawMessage        `json:"Ping"`
 	Thermal map[string]interface{} `json:"Thermal"`
 }
 
@@ -83,6 +83,67 @@ func UnmarshalJSONData(data string) (*CollectionData, error) {
 	return &d, nil
 }
 
+func GetUUIDs() (map[string]string, error) {
+	if MapStringCache == nil {
+		return nil, fmt.Errorf("MapStringCache is not initialized")
+	}
+
+	if MapStringCache.Get("system_monitor:hashes") != nil {
+		return MapStringCache.Get("system_monitor:hashes").Value(), nil
+	}
+
+	data, err := RedisHGetAll(context.Background(), RedisClient, "system_monitor:hashes")
+
+	MapStringCache.Set(
+		"system_monitor:hashes",
+		data,
+		time.Duration(GetEnvInt("LOCAL_CACHE_TIME", 300))*time.Second,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func GetCollectionStatus() (*orderedmap.OrderedMap[string, map[string]interface{}], error) {
+	result := orderedmap.NewOrderedMap[string, map[string]interface{}]()
+
+	online := map[string]interface{}{}
+	offline := map[string]interface{}{}
+	info := map[string]interface{}{}
+	uuids, err := GetUUIDs()
+	if err != nil {
+		return nil, err
+	}
+
+	for uuidKey := range uuids {
+		latest, err := GetCollectionLatest(uuidKey)
+		if err != nil {
+			fmt.Println(uuidKey, err)
+			continue
+		}
+
+		_info, _ := GetInfo(uuidKey)
+
+		i, _ := strconv.ParseFloat(_info["Update Time"], 64)
+		t := time.Unix(int64(i), 0)
+
+		if t.Before(time.Now().Add(-time.Duration(GetEnvInt("OFFLINE_THRESHOLD", 600)) * time.Second)) {
+			offline[uuidKey] = latest
+		} else {
+			online[uuidKey] = latest
+		}
+
+		info[uuidKey] = _info
+	}
+
+	result.Set("online", online)
+	result.Set("offline", offline)
+	result.Set("info", info)
+
+	return result, nil
+}
+
 func GetCollection(uuid string) (*orderedmap.OrderedMap[int64, CollectionData], error) {
 	if CollectionCache == nil {
 		return nil, fmt.Errorf("LocalCacheClient is not initialized")
@@ -101,12 +162,14 @@ func GetCollection(uuid string) (*orderedmap.OrderedMap[int64, CollectionData], 
 		&redis.ZRangeBy{Min: "0", Max: fmt.Sprint(time.Now().Unix())},
 	)
 	if err != nil {
+		// fmt.Println(err)
 		return nil, err
 	}
 
 	for _, item := range data {
 		d, err := UnmarshalJSONData(item.Member.(string))
 		if err != nil {
+			// fmt.Println(err)
 			continue
 		}
 		orderedMap.Set(int64(item.Score), *d)
@@ -117,6 +180,7 @@ func GetCollection(uuid string) (*orderedmap.OrderedMap[int64, CollectionData], 
 		orderedMap,
 		time.Duration(GetEnvInt("LOCAL_CACHE_TIME", 300))*time.Second,
 	)
+
 	return orderedMap, nil
 }
 
@@ -155,7 +219,31 @@ func CollectionFormat(collections *orderedmap.OrderedMap[int64, CollectionData],
 
 		}
 		return result
+	case "Network":
+		result := map[string]interface{}{
+			"time": []string{},
+			"RX": map[string]interface{}{
+				"megabytes": []string{},
+				"packets":   []string{},
+			},
+			"TX": map[string]interface{}{
+				"megabytes": []string{},
+				"packets":   []string{},
+			},
+		}
 
+		for score, collection := range collections.AllFromFront() {
+			d := reflect.ValueOf(collection)
+			// result["time"] = append(result["time"].([]string), fmt.Sprint(score))
+
+			result["time"] = append(result["time"].([]string), time.Unix(score, 0).Format("01-02 15:04"))
+			result["RX"].(map[string]interface{})["megabytes"] = append(result["RX"].(map[string]interface{})["megabytes"].([]string), FieldToString(d.FieldByName(name).FieldByName("Rx").FieldByName("Bytes")))
+			result["RX"].(map[string]interface{})["packets"] = append(result["RX"].(map[string]interface{})["packets"].([]string), FieldToString(d.FieldByName(name).FieldByName("Rx").FieldByName("Packets")))
+			result["TX"].(map[string]interface{})["megabytes"] = append(result["TX"].(map[string]interface{})["megabytes"].([]string), FieldToString(d.FieldByName(name).FieldByName("Tx").FieldByName("Bytes")))
+			result["TX"].(map[string]interface{})["packets"] = append(result["TX"].(map[string]interface{})["packets"].([]string), FieldToString(d.FieldByName(name).FieldByName("Tx").FieldByName("Packets")))
+
+		}
+		return result
 	case "Disk":
 		result := map[string]interface{}{
 			"time":  []string{},
@@ -230,13 +318,17 @@ func GetInfo(uuid string) (map[string]string, error) {
 		return MapStringCache.Get("system_monitor:info:" + uuid).Value(), nil
 	}
 
+	data, err := RedisHGetAll(context.Background(), GetRedisClient(), "system_monitor:info:"+uuid)
+	if err != nil {
+		fmt.Println("Error getting info from Redis:", err)
+		return nil, err
+	}
+
 	MapStringCache.Set(
 		"system_monitor:info:"+uuid,
-		RedisClient.HGetAll(context.Background(), "system_monitor:info:"+uuid).Val(),
+		data,
 		time.Duration(GetEnvInt("LOCAL_CACHE_TIME", 300))*time.Second,
 	)
 
-	data := RedisClient.HGetAll(context.Background(), "system_monitor:info:"+uuid)
-
-	return data.Val(), nil
+	return data, nil
 }

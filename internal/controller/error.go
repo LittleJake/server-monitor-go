@@ -25,10 +25,9 @@ func (ErrorController) NoRouteError(c *gin.Context) {
 func (ErrorController) NoMethodError(c *gin.Context) {
 	errorData, ok := c.Get(middleware.CtxServerDataKey)
 	if !ok {
-		c.HTML(http.StatusNotFound, "error.html", nil)
+		c.HTML(http.StatusMethodNotAllowed, "error.html", nil)
 		return
 	}
 	errorData.(map[string]interface{})["Message"] = fmt.Sprintf("%s %s", c.Request.URL.String(), "Method Not Allowed")
-	c.HTML(http.StatusNotFound, "error.html", errorData)
+	c.HTML(http.StatusMethodNotAllowed, "error.html", errorData)
 }
-
