@@ -102,7 +102,7 @@
                         {{ range $mountpoint, $stat := .latest.Disk }}
                         <div class="mdui-row">
                             <h4>{{ $mountpoint }}</h4>
-                            <p>{{ $stat.used | sizeFormat }} / {{ $stat.total | sizeFormat }}</p>
+                            <p>{{ index $stat "used" | sizeFormat }} / {{ index $stat "total" | sizeFormat }}</p>
                             <div id="disk_status_{{ $mountpoint | hash }}" class="line"></div>
                         </div>
                         {{ end }}
@@ -125,10 +125,10 @@
         <div class="mdui-panel-item-body">
             <div class="mdui-col-lg-3">
                 <h4>{{locale .Context "0000024"}}</h4>
-                <p>{{ .latest.Memory.Mem.Used | sizeFormat}} / {{ .latest.Memory.Mem.Total | sizeFormat }}</p>
+                <p>{{ index .latest "Memory" "Mem" "used" | sizeFormat}} / {{ index .latest "Memory" "Mem" "total" | sizeFormat }}</p>
                 <div id="memory_status" class="line"></div>
                 <h4>{{locale .Context "0000028"}}</h4>
-                <p>{{ .latest.Memory.Swap.Used | sizeFormat}} / {{ .latest.Memory.Swap.Total | sizeFormat }}</p>
+                <p>{{ index .latest "Memory" "Swap" "used" | sizeFormat}} / {{ index .latest "Memory" "Swap" "total" | sizeFormat }}</p>
                 <div id="swap_status" class="line"></div>
             </div>
             <div class="mdui-col-lg-9">
@@ -229,11 +229,11 @@
 
     //disk
     {{ range $mountpoint, $stat := .latest.Disk }}
-    new ProgressBar.Line("#disk_status_{{ $mountpoint | hash }}", bar_config).animate({{ $stat.percent }}/100);
+    new ProgressBar.Line("#disk_status_{{ $mountpoint | hash }}", bar_config).animate({{ index $stat "percent" }}/100);
     {{ end }}
 
-    new ProgressBar.Line(memory_status, bar_config).animate({{ .latest.Memory.Mem.Percent }}/100);
-    new ProgressBar.Line(swap_status, bar_config).animate({{ .latest.Memory.Swap.Percent }}/100);
+    new ProgressBar.Line(memory_status, bar_config).animate({{ index .latest "Memory" "Mem" "percent" }}/100);
+    new ProgressBar.Line(swap_status, bar_config).animate({{ index .latest "Memory" "Swap" "percent" }}/100);
 
     $.ajax({
         url: {{ printf "%s/api/network/%s" .base_url .uuid | js }} , method: "get", dataType: 'json',

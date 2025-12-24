@@ -12,50 +12,52 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type CollectionData struct {
-	Battery json.RawMessage                   `json:"Battery"`
-	Disk    map[string]map[string]interface{} `json:"Disk"`
-	Fan     json.RawMessage                   `json:"Fan"`
-	Io      struct {
-		Read struct {
-			Count int `json:"count"`
-			Bytes int `json:"bytes"`
-			Time  int `json:"time"`
-		} `json:"read"`
-		Write struct {
-			Count int `json:"count"`
-			Bytes int `json:"bytes"`
-			Time  int `json:"time"`
-		} `json:"write"`
-	} `json:"IO"`
-	Load   map[string]interface{} `json:"Load"`
-	Memory struct {
-		Mem struct {
-			Total   string  `json:"total"`
-			Used    string  `json:"used"`
-			Free    string  `json:"free"`
-			Percent float64 `json:"percent"`
-		} `json:"Mem"`
-		Swap struct {
-			Total   string  `json:"total"`
-			Used    string  `json:"used"`
-			Free    string  `json:"free"`
-			Percent float64 `json:"percent"`
-		} `json:"Swap"`
-	} `json:"Memory"`
-	Network struct {
-		Rx struct {
-			Bytes   int `json:"bytes"`
-			Packets int `json:"packets"`
-		} `json:"RX"`
-		Tx struct {
-			Bytes   int `json:"bytes"`
-			Packets int `json:"packets"`
-		} `json:"TX"`
-	} `json:"Network"`
-	Ping    json.RawMessage        `json:"Ping"`
-	Thermal map[string]interface{} `json:"Thermal"`
-}
+type CollectionData map[string]interface{}
+
+// type CollectionData struct {
+// 	Battery json.RawMessage                   `json:"Battery"`
+// 	Disk    map[string]map[string]interface{} `json:"Disk"`
+// 	Fan     json.RawMessage                   `json:"Fan"`
+// 	Io      struct {
+// 		Read struct {
+// 			Count int `json:"count"`
+// 			Bytes int `json:"bytes"`
+// 			Time  int `json:"time"`
+// 		} `json:"read"`
+// 		Write struct {
+// 			Count int `json:"count"`
+// 			Bytes int `json:"bytes"`
+// 			Time  int `json:"time"`
+// 		} `json:"write"`
+// 	} `json:"IO"`
+// 	Load   map[string]interface{} `json:"Load"`
+// 	Memory struct {
+// 		Mem struct {
+// 			Total   string  `json:"total"`
+// 			Used    string  `json:"used"`
+// 			Free    string  `json:"free"`
+// 			Percent float64 `json:"percent"`
+// 		} `json:"Mem"`
+// 		Swap struct {
+// 			Total   string  `json:"total"`
+// 			Used    string  `json:"used"`
+// 			Free    string  `json:"free"`
+// 			Percent float64 `json:"percent"`
+// 		} `json:"Swap"`
+// 	} `json:"Memory"`
+// 	Network struct {
+// 		Rx struct {
+// 			Bytes   int `json:"bytes"`
+// 			Packets int `json:"packets"`
+// 		} `json:"RX"`
+// 		Tx struct {
+// 			Bytes   int `json:"bytes"`
+// 			Packets int `json:"packets"`
+// 		} `json:"TX"`
+// 	} `json:"Network"`
+// 	Ping    json.RawMessage `json:"Ping"`
+// 	Thermal json.RawMessage `json:"Thermal"`
+// }
 
 func FieldToString(f reflect.Value) string {
 	switch f.Kind() {
@@ -162,14 +164,14 @@ func GetCollection(uuid string) (*orderedmap.OrderedMap[int64, CollectionData], 
 		&redis.ZRangeBy{Min: "0", Max: fmt.Sprint(time.Now().Unix())},
 	)
 	if err != nil {
-		// fmt.Println(err)
+		fmt.Println(err)
 		return nil, err
 	}
 
 	for _, item := range data {
 		d, err := UnmarshalJSONData(item.Member.(string))
 		if err != nil {
-			// fmt.Println(err)
+			fmt.Println(err)
 			continue
 		}
 		orderedMap.Set(int64(item.Score), *d)
@@ -195,10 +197,12 @@ func GetCollectionLatest(uuid string) (CollectionData, error) {
 		return CollectionData{}, fmt.Errorf("no data found for uuid: %s", uuid)
 	}
 
+	fmt.Println(latest.Value)
 	return latest.Value, nil
 }
 
 func CollectionFormat(collections *orderedmap.OrderedMap[int64, CollectionData], name string) map[string]interface{} {
+	// fmt.Println(collections.Front())
 	switch name {
 	case "Memory":
 		result := map[string]interface{}{
@@ -209,13 +213,23 @@ func CollectionFormat(collections *orderedmap.OrderedMap[int64, CollectionData],
 			},
 		}
 
+		// for score, collection := range collections.AllFromFront() {
+		// 	d := reflect.ValueOf(collection)
+		// 	// result["time"] = append(result["time"].([]string), fmt.Sprint(score))
+
+		// 	result["time"] = append(result["time"].([]string), time.Unix(score, 0).Format("01-02 15:04"))
+		// 	result["value"].(map[string]interface{})["Mem"] = append(result["value"].(map[string]interface{})["Mem"].([]string), d.FieldByName(name).FieldByName("Mem").FieldByName("Used").String())
+		// 	result["value"].(map[string]interface{})["Swap"] = append(result["value"].(map[string]interface{})["Swap"].([]string), d.FieldByName(name).FieldByName("Swap").FieldByName("Used").String())
+
+		// }
+
 		for score, collection := range collections.AllFromFront() {
-			d := reflect.ValueOf(collection)
+			//d := reflect.ValueOf(collection)
 			// result["time"] = append(result["time"].([]string), fmt.Sprint(score))
 
 			result["time"] = append(result["time"].([]string), time.Unix(score, 0).Format("01-02 15:04"))
-			result["value"].(map[string]interface{})["Mem"] = append(result["value"].(map[string]interface{})["Mem"].([]string), d.FieldByName(name).FieldByName("Mem").FieldByName("Used").String())
-			result["value"].(map[string]interface{})["Swap"] = append(result["value"].(map[string]interface{})["Swap"].([]string), d.FieldByName(name).FieldByName("Swap").FieldByName("Used").String())
+			result["value"].(map[string]interface{})["Mem"] = append(result["value"].(map[string]interface{})["Mem"].([]string), collection[name].(map[string]interface{})["Mem"].(map[string]interface{})["used"].(string))
+			result["value"].(map[string]interface{})["Swap"] = append(result["value"].(map[string]interface{})["Swap"].([]string), collection[name].(map[string]interface{})["Swap"].(map[string]interface{})["used"].(string))
 
 		}
 		return result
@@ -223,49 +237,79 @@ func CollectionFormat(collections *orderedmap.OrderedMap[int64, CollectionData],
 		result := map[string]interface{}{
 			"time": []string{},
 			"RX": map[string]interface{}{
-				"megabytes": []string{},
-				"packets":   []string{},
+				"megabytes": []float64{},
+				"packets":   []float64{},
 			},
 			"TX": map[string]interface{}{
-				"megabytes": []string{},
-				"packets":   []string{},
+				"megabytes": []float64{},
+				"packets":   []float64{},
 			},
 		}
 
+		// for score, collection := range collections.AllFromFront() {
+		// 	d := reflect.ValueOf(collection)
+		// 	// result["time"] = append(result["time"].([]string), fmt.Sprint(score))
+
+		// 	result["time"] = append(result["time"].([]string), time.Unix(score, 0).Format("01-02 15:04"))
+		// 	result["RX"].(map[string]interface{})["megabytes"] = append(result["RX"].(map[string]interface{})["megabytes"].([]string), FieldToString(d.FieldByName(name).FieldByName("Rx").FieldByName("Bytes")))
+		// 	result["RX"].(map[string]interface{})["packets"] = append(result["RX"].(map[string]interface{})["packets"].([]string), FieldToString(d.FieldByName(name).FieldByName("Rx").FieldByName("Packets")))
+		// 	result["TX"].(map[string]interface{})["megabytes"] = append(result["TX"].(map[string]interface{})["megabytes"].([]string), FieldToString(d.FieldByName(name).FieldByName("Tx").FieldByName("Bytes")))
+		// 	result["TX"].(map[string]interface{})["packets"] = append(result["TX"].(map[string]interface{})["packets"].([]string), FieldToString(d.FieldByName(name).FieldByName("Tx").FieldByName("Packets")))
+
+		// }
+
 		for score, collection := range collections.AllFromFront() {
-			d := reflect.ValueOf(collection)
+			// d := reflect.ValueOf(collection)
 			// result["time"] = append(result["time"].([]string), fmt.Sprint(score))
 
 			result["time"] = append(result["time"].([]string), time.Unix(score, 0).Format("01-02 15:04"))
-			result["RX"].(map[string]interface{})["megabytes"] = append(result["RX"].(map[string]interface{})["megabytes"].([]string), FieldToString(d.FieldByName(name).FieldByName("Rx").FieldByName("Bytes")))
-			result["RX"].(map[string]interface{})["packets"] = append(result["RX"].(map[string]interface{})["packets"].([]string), FieldToString(d.FieldByName(name).FieldByName("Rx").FieldByName("Packets")))
-			result["TX"].(map[string]interface{})["megabytes"] = append(result["TX"].(map[string]interface{})["megabytes"].([]string), FieldToString(d.FieldByName(name).FieldByName("Tx").FieldByName("Bytes")))
-			result["TX"].(map[string]interface{})["packets"] = append(result["TX"].(map[string]interface{})["packets"].([]string), FieldToString(d.FieldByName(name).FieldByName("Tx").FieldByName("Packets")))
+			result["RX"].(map[string]interface{})["megabytes"] = append(result["RX"].(map[string]interface{})["megabytes"].([]float64), collection[name].(map[string]interface{})["RX"].(map[string]interface{})["bytes"].(float64)/1048576)
+			result["RX"].(map[string]interface{})["packets"] = append(result["RX"].(map[string]interface{})["packets"].([]float64), collection[name].(map[string]interface{})["RX"].(map[string]interface{})["packets"].(float64)/1000)
+			result["TX"].(map[string]interface{})["megabytes"] = append(result["TX"].(map[string]interface{})["megabytes"].([]float64), collection[name].(map[string]interface{})["TX"].(map[string]interface{})["bytes"].(float64)/1048576)
+			result["TX"].(map[string]interface{})["packets"] = append(result["TX"].(map[string]interface{})["packets"].([]float64), collection[name].(map[string]interface{})["TX"].(map[string]interface{})["packets"].(float64)/1000)
 
 		}
+
 		return result
 	case "Disk":
 		result := map[string]interface{}{
 			"time":  []string{},
 			"value": map[string]interface{}{},
 		}
+		// for score, collection := range collections.AllFromFront() {
+		// 	d := reflect.ValueOf(collection)
+
+		// 	result["time"] = append(result["time"].([]string), time.Unix(score, 0).Format("01-02 15:04"))
+
+		// 	for _, key := range d.FieldByName(name).MapKeys() {
+		// 		value := d.FieldByName(name).MapIndex(key) // mount point value map{free, used, percentage}
+		// 		fieldName := key.String()                  //mount point name
+
+		// 		// get typed reference to result["value"]
+		// 		resValue := result["value"].(map[string]interface{})
+
+		// 		if resValue[fieldName] == nil {
+		// 			resValue[fieldName] = make([]string, 0)
+		// 		}
+
+		// 		resValue[fieldName] = append(resValue[fieldName].([]string), FieldToString(value.MapIndex(reflect.ValueOf("used"))))
+		// 	}
+		// }
 		for score, collection := range collections.AllFromFront() {
-			d := reflect.ValueOf(collection)
+			// d := reflect.ValueOf(collection)
 
 			result["time"] = append(result["time"].([]string), time.Unix(score, 0).Format("01-02 15:04"))
 
-			for _, key := range d.FieldByName(name).MapKeys() {
-				value := d.FieldByName(name).MapIndex(key) // mount point value map{free, used, percentage}
-				fieldName := key.String()                  //mount point name
+			for key, _v := range collection[name].(map[string]interface{}) {
 
 				// get typed reference to result["value"]
 				resValue := result["value"].(map[string]interface{})
 
-				if resValue[fieldName] == nil {
-					resValue[fieldName] = make([]string, 0)
+				if resValue[key] == nil {
+					resValue[key] = make([]string, 0)
 				}
 
-				resValue[fieldName] = append(resValue[fieldName].([]string), FieldToString(value.MapIndex(reflect.ValueOf("used"))))
+				resValue[key] = append(resValue[key].([]string), _v.(map[string]interface{})["used"].(string))
 			}
 		}
 		return result
@@ -275,25 +319,45 @@ func CollectionFormat(collections *orderedmap.OrderedMap[int64, CollectionData],
 			"value": map[string]interface{}{},
 		}
 
+		// for score, collection := range collections.AllFromFront() {
+		// 	d := reflect.ValueOf(collection)
+		// 	// result["time"] = append(result["time"].([]string), fmt.Sprint(score))
+
+		// 	result["time"] = append(result["time"].([]string), time.Unix(score, 0).Format("01-02 15:04"))
+
+		// 	for _, key := range d.FieldByName(name).MapKeys() {
+		// 		//load:{idle, system....}
+		// 		//thermal:{cpu, gpu....}
+		// 		value := d.FieldByName(name).MapIndex(key) // value is a map[string]interface{}
+		// 		//get the key name inside the map (eg. "idle", "system")
+		// 		fieldName := key.String()
+		// 		//generate value []string for the key inside the result: result["value"][key]
+		// 		resValue := result["value"].(map[string]interface{})
+		// 		if resValue[fieldName] == nil {
+		// 			resValue[fieldName] = make([]string, 0)
+		// 		}
+		// 		//set the value to the result["value"][key]
+		// 		resValue[fieldName] = append(resValue[fieldName].([]string), FieldToString(value))
+		// 	}
+
+		// }
+
 		for score, collection := range collections.AllFromFront() {
-			d := reflect.ValueOf(collection)
+			// d := reflect.ValueOf(collection)
 			// result["time"] = append(result["time"].([]string), fmt.Sprint(score))
 
 			result["time"] = append(result["time"].([]string), time.Unix(score, 0).Format("01-02 15:04"))
 
-			for _, key := range d.FieldByName(name).MapKeys() {
+			for key, _v := range collection[name].(map[string]interface{}) {
 				//load:{idle, system....}
 				//thermal:{cpu, gpu....}
-				value := d.FieldByName(name).MapIndex(key) // value is a map[string]interface{}
-				//get the key name inside the map (eg. "idle", "system")
-				fieldName := key.String()
 				//generate value []string for the key inside the result: result["value"][key]
 				resValue := result["value"].(map[string]interface{})
-				if resValue[fieldName] == nil {
-					resValue[fieldName] = make([]string, 0)
+				if resValue[key] == nil {
+					resValue[key] = make([]float64, 0)
 				}
 				//set the value to the result["value"][key]
-				resValue[fieldName] = append(resValue[fieldName].([]string), FieldToString(value))
+				resValue[key] = append(resValue[key].([]float64), _v.(float64))
 			}
 
 		}
@@ -309,6 +373,27 @@ func CollectionFormat(collections *orderedmap.OrderedMap[int64, CollectionData],
 
 }
 
+func GetDisplayName() (map[string]string, error) {
+	if MapStringCache == nil {
+		return nil, fmt.Errorf("MapStringCache is not initialized")
+	}
+
+	if MapStringCache.Get("system_monitor:name") != nil {
+		return MapStringCache.Get("system_monitor:name").Value(), nil
+	}
+	data, err := RedisHGetAll(context.Background(), GetRedisClient(), "system_monitor:name")
+	if err != nil {
+		fmt.Println("Error getting name from Redis:", err)
+		return nil, err
+	}
+	MapStringCache.Set(
+		"system_monitor:name",
+		data,
+		time.Duration(GetEnvInt("LOCAL_CACHE_TIME", 300))*time.Second,
+	)
+	return data, nil
+}
+
 func GetInfo(uuid string) (map[string]string, error) {
 	if MapStringCache == nil {
 		return nil, fmt.Errorf("MapStringCache is not initialized")
@@ -319,7 +404,7 @@ func GetInfo(uuid string) (map[string]string, error) {
 	}
 
 	data, err := RedisHGetAll(context.Background(), GetRedisClient(), "system_monitor:info:"+uuid)
-	if err != nil {
+	if err != nil || len(data) == 0 {
 		fmt.Println("Error getting info from Redis:", err)
 		return nil, err
 	}

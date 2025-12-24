@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/LittleJake/server-monitor-go/internal/assets"
 	"github.com/LittleJake/server-monitor-go/internal/controller"
 	"github.com/LittleJake/server-monitor-go/internal/controller/api"
 	"github.com/LittleJake/server-monitor-go/internal/middleware"
@@ -186,6 +187,12 @@ func SetupRouter() *gin.Engine {
 			}
 			return 0
 		},
+		"default": func(v any, d any) any {
+			if v == nil || fmt.Sprintf("%s", v) == "" {
+				return fmt.Sprintf("%s", d)
+			}
+			return fmt.Sprintf("%s", v)
+		},
 	})
 	// Use the default Recovery in debug mode so developers see panics.
 	// In non-debug (production) mode, use a custom recovery that renders
@@ -251,6 +258,9 @@ func SetupRouter() *gin.Engine {
 
 	// Serve static files (example)
 	r.Static("/static", "./public")
+
+	// Serve embedded favicon.ico
+	r.GET("/favicon.ico", assets.ServeFavicon)
 
 	return r
 }

@@ -62,8 +62,8 @@
                             <td>
                                 <span
                                     class="flag-icon flag-icon-{{ index $.info $uuid "Country Code" | lower }}"
-                                    mdui-tooltip="{'content': {{ index $.info $uuid "Country" }}}"></span>
-                                {{ index $.info $uuid "IPV4" }}
+                                    mdui-tooltip="{'content': {{ default (index $.info $uuid "Country") "Unknown" }}}"></span>
+                                {{ default (index $.name $uuid ) (index $.info $uuid "IPV4")  }}
                             </td>
                             <td>
                                 <span class="icon-{{ index $.info $uuid "System Version" | iconName }}"></span>
@@ -85,8 +85,8 @@
                             <td>
                                 <span
                                     class="flag-icon flag-icon-{{ index $.info $uuid "Country Code" | lower }}"
-                                    mdui-tooltip="{'content': {{ index $.info $uuid "Country" }}}"></span>
-                                {{ index $.info $uuid "IPV4" }}
+                                    mdui-tooltip="{'content': {{ default (index $.info $uuid "Country") "Unknown" }}}"></span>
+                                    {{ default (index $.name $uuid ) (index $.info $uuid "IPV4")  }}
                             </td>
                             <td>
                                 <span class="icon-{{ index $.info $uuid "System Version" | iconName }}"></span>

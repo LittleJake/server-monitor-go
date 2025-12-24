@@ -50,7 +50,7 @@
                             {{ index $.info $uuid "IPV4" }}
                         </div>
                         <div class="mdui-list-item-text mdui-list-item-one-line">
-                            {{ index $.info $uuid "Country" }}
+                            {{ default (index $.info $uuid "Country") "Unknown" }}
                         </div>
                     </div>
                     <i class="mdui-icon material-icons mdui-text-color-green">&#xe2bf;</i>
@@ -73,7 +73,7 @@
                             {{ index $.info $uuid "IPV4" }}
                         </div>
                         <div class="mdui-list-item-text mdui-list-item-one-line">
-                            {{ index $.info $uuid "Country" }}
+                            {{ default (index $.info $uuid "Country") "Unknown" }}
                         </div>
                     </div>
                     <i class="mdui-icon material-icons mdui-text-color-red">&#xe2c1;</i>

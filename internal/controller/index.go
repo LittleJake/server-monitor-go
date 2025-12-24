@@ -18,12 +18,15 @@ func (IndexController) Index(c *gin.Context) {
 	offline, _ := list.Get("offline")
 	info, _ := list.Get("info")
 
+	name, _ := util.GetDisplayName()
+
 	c.HTML(http.StatusOK, "index.html", gin.H{
 		"base_url": util.GetEnv("BASE_URL", ""),
 		"Context":  c,
 		"online":   online,
 		"offline":  offline,
 		"info":     info,
+		"name":     name,
 	})
 	//c.JSON(http.StatusOK, gin.H{"status": "ok", "uptime": time.Now().UTC()})
 }
@@ -35,6 +38,7 @@ func (IndexController) List(c *gin.Context) {
 	online, _ := list.Get("online")
 	offline, _ := list.Get("offline")
 	info, _ := list.Get("info")
+	name, _ := util.GetDisplayName()
 
 	result := gin.H{
 		"base_url": util.GetEnv("BASE_URL", ""),
@@ -42,6 +46,7 @@ func (IndexController) List(c *gin.Context) {
 		"online":   online,
 		"offline":  offline,
 		"info":     info,
+		"name":     name,
 	}
 
 	if c.Request.Header.Get("X-Requested-With") == "XMLHttpRequest" {
