@@ -29,6 +29,8 @@ func main() {
 	// listen and serve on 0.0.0.0:8080
 	r.LoadHTMLGlob("view/**/*.html")
 
+	go util.CronJob()
+
 	print("starting server on :8888")
 	_ = r.Run("127.0.0.1:8888")
 }

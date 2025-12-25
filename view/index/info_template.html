@@ -239,9 +239,13 @@
         url: {{ printf "%s/api/network/%s" .base_url .uuid | js }} , method: "get", dataType: 'json',
         async: true,
         success: function(e){
+            if (e == null || Object.keys(e).length === 0){
+                document.getElementById('network-collection').parentNode.innerHTML="No data";
+                return;
+            }
             let option = {
                 title: {text:"Network RX & TX", left: 'center'},
-                tooltip: {trigger: 'axis', axisPointer: {type: 'cross', label: {backgroundColor: '#6a7985'}}},
+                tooltip: {trigger: 'axis', axisPointer: {type: 'cross', label: {backgroundColor: '#6a7985'}}, valueFormatter: (value) => parseFloat(value).toFixed(2)},
                 legend: {bottom: 50, data: ['RX Packets (k)', 'RX Throughput (MB)', 'TX Packets (k)', 'TX Throughput (MB)',]},
                 grid: [{height: '60%'}, {height: '60%'}],
                 axisPointer: {link: {xAxisIndex: 'all'}},
@@ -249,24 +253,24 @@
                 xAxis: {type: 'category', boundaryGap: false, data: e.time},
                 yAxis: [{
                     type: 'value',
-                    name: 'Packets',
+                    name: {{locale .Context "0000054"}},
                     axisLabel: {formatter: '{value} k'},
                     position: 'right',
                     axisLine: {show: true},
                     splitLine: {show: false},
                 }, {
                     type: 'value',
-                    name: 'Throughput',
+                    name: {{locale .Context "0000019"}},
                     axisLabel: {formatter: '{value} MB'},
                     position: 'left',
                     axisLine: {show: true},
                     splitLine: {show: false},
                 }],
                 series: [
-                    {name: 'RX Packets (k)',symbol: 'none', type: 'line', areaStyle: {}, data: e.RX.packets,},
-                    {name: 'RX Throughput (MB)',symbol: 'none', yAxisIndex: 1, type: 'line', areaStyle: {}, data: e.RX.megabytes,},
-                    {name: 'TX Packets (k)',symbol: 'none', type: 'line', areaStyle: {}, data: e.TX.packets,},
-                    {name: 'TX Throughput (MB)',symbol: 'none', yAxisIndex: 1, type: 'line', areaStyle: {}, data: e.TX.megabytes,},
+                    {name: '{{locale .Context "0000055"}} {{locale .Context "0000054"}} (k)',symbol: 'none', type: 'line', areaStyle: {}, data: e.RX.packets,},
+                    {name: '{{locale .Context "0000055"}} {{locale .Context "0000019"}} (MB)',symbol: 'none', yAxisIndex: 1, type: 'line', areaStyle: {}, data: e.RX.megabytes,},
+                    {name: '{{locale .Context "0000056"}} {{locale .Context "0000054"}} (k)',symbol: 'none', type: 'line', areaStyle: {}, data: e.TX.packets,},
+                    {name: '{{locale .Context "0000056"}} {{locale .Context "0000019"}} (MB)',symbol: 'none', yAxisIndex: 1, type: 'line', areaStyle: {}, data: e.TX.megabytes,},
                 ]
             };
 
@@ -279,6 +283,10 @@
         url:  {{ printf "%s/api/io/%s" .base_url .uuid | js }} , method: "get", dataType: 'json',
         async: true,
         success: function(e){
+            if (e == null || Object.keys(e).length === 0){
+                document.getElementById('io-collection').parentNode.innerHTML="No data";
+                return;
+            }
             let option = {
                 title: {text: {{locale .Context "0000030"}}, left: 'center'},
                 tooltip: {trigger: 'axis', axisPointer: {type: 'cross', label: {backgroundColor: '#6a7985'}}},
@@ -296,14 +304,15 @@
                     splitLine: {show: false},
                 }, {
                     type: 'value',
-                    name: 'Throughput',
+                    name: {{locale .Context "0000019"}},
                     axisLabel: {formatter: '{value} MB'},
                     position: 'left',
                     axisLine: {show: true},
                     splitLine: {show: false},
                 }, {
                     type: 'value',
-                    name: 'Time (ms)',
+                    name: 'Time',
+                    axisLabel: {formatter: '{value} ms'},
                     position: 'left',
                     show: false
                 }],
@@ -326,8 +335,12 @@
         url: {{ printf "%s/api/disk/%s" .base_url .uuid | js }} , method: "get", dataType: 'json',
         async: true,
         success: function(e){
+            if (e == null || Object.keys(e).length === 0){
+                document.getElementById('disk-collection').parentNode.innerHTML="No data";
+                return;
+            }
             let option = {
-                tooltip: {trigger: 'axis'},
+                tooltip: {trigger: 'axis', valueFormatter: function(value) {if(value > 1024) return((parseFloat(value)/1024).toFixed(2) + " GB"); else return(parseFloat(value).toFixed(2) + " MB");}},
                 title: {left: 'center', text: {{locale .Context "0000027"}}},
                 xAxis: {type: 'category', boundaryGap: false, data: e.time},
                 yAxis: {type: 'value',axisLabel: {formatter: '{value} MB'},},
@@ -358,8 +371,12 @@
         url: {{ printf "%s/api/memory/%s" .base_url .uuid | js }}, method: "get", dataType: 'json',
         async: true,
         success: function(e){
+            if (e == null || Object.keys(e).length === 0){
+                document.getElementById('memory-collection').parentNode.innerHTML="No data";
+                return;
+            }
             let option = {
-                tooltip: {trigger: 'axis'},
+                tooltip: {trigger: 'axis', valueFormatter: function(value) {if(value > 1024) return((parseFloat(value)/1024).toFixed(2) + " GB"); else return(parseFloat(value).toFixed(2) + " MB");}},
                 title: {left: 'center', text: {{locale .Context "0000024"}}},
                 xAxis: {type: 'category', boundaryGap: false, data: e.time},
                 yAxis: {type: 'value',axisLabel: {formatter: '{value} MB'},},
@@ -389,8 +406,12 @@
         url: {{ printf "%s/api/cpu/%s" .base_url .uuid | js }}, method: "get", dataType: 'json',
         async: true,
         success: function(e){
+            if (e == null || Object.keys(e).length === 0){
+                document.getElementById('cpu-collection').parentNode.innerHTML="No data";
+                return;
+            }
             let option = {
-                tooltip: {trigger: 'axis'},
+                tooltip: {trigger: 'axis', valueFormatter: (value) => parseFloat(value).toFixed(2) + " %"},
                 title: {left: 'center', text: {{locale .Context "0000023"}}},
                 xAxis: {type: 'category', boundaryGap: false, data: e.time},
                 yAxis: {type: 'value',axisLabel: {formatter: '{value} %'}},
@@ -419,9 +440,9 @@
         url: {{ printf "%s/api/thermal/%s" .base_url .uuid | js }}, method: "get", dataType: 'json',
         async: true,
         success: function(e){
-            if (e.value.length === 0){
-                document.getElementById('thermal-collection').innerHTML="No Sensor Available.";
-                return 0;
+            if (e == null || Object.keys(e).length === 0){
+                document.getElementById('thermal-collection').parentNode.innerHTML="No data";
+                return;
             }
 
             let option = {
@@ -460,9 +481,9 @@
         url: {{ printf "%s/api/battery/%s" .base_url .uuid | js }}, method: "get", dataType: 'json',
         async: true,
         success: function(e){
-            if (e.value.length === 0){
-                document.getElementById('battery-collection').innerHTML="No Sensor Available.";
-                return 0;
+            if (e == null || Object.keys(e).length === 0){
+                document.getElementById('battery-collection').parentNode.innerHTML="No data";
+                return;
             }
 
             let option = {
@@ -499,9 +520,9 @@
         url: {{ printf "%s/api/ping/%s" .base_url .uuid | js }}, method: "get", dataType: 'json',
         async: true,
         success: function(e){
-            if (e.value.length === 0){
-                document.getElementById('ping-collection').innerHTML="No Ping View Available.";
-                return 0;
+            if (e == null || Object.keys(e).length === 0){
+                document.getElementById('ping-collection').parentNode.innerHTML="No data";
+                return;
             }
 
             let option = {

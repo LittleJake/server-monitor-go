@@ -18,7 +18,17 @@ func ServerDataMiddleware() gin.HandlerFunc {
 				"Query":    c.Request.URL.Query(),
 			},
 			"Request": c.Request,
+			"Context": c,
 		}
+
+		// set lang cookie
+		lang := c.Query("lang")
+		if lang == "" {
+			if cookie, err := c.Cookie("lang"); err == nil {
+				lang = cookie
+			}
+		}
+		c.SetCookie("lang", lang, 0, "/", c.Request.URL.Hostname(), false, true)
 
 		c.Set(CtxServerDataKey, s)
 		c.Next()

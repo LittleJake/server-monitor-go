@@ -42,8 +42,17 @@
     "0000041": "Online",
     "0000042": "Offline",
     "0000043": "About",
-    "0000044": "License",
+    "0000044": "Licensed under the Apache License, Version 2.0",
     "0000045": "OS",
-    "0000046": "Server Name"
-
+    "0000046": "Server Name",
+    "0000047": "Something is wrong!",
+    "0000048": "Oops! Error!",
+    "0000049": "Info",
+    "0000050": "Error Message",
+    "0000051": "Made and Loved by Jake Liu, 2025.",
+    "0000052": "Powered by Golang & Gin.",
+    "0000053": "Every code is valuable.",
+    "0000054": "Packets",
+    "0000055": "RX",
+    "0000056": "TX"
 }

@@ -18,7 +18,7 @@ func (IndexController) Index(c *gin.Context) {
 	offline, _ := list.Get("offline")
 	info, _ := list.Get("info")
 
-	name, _ := util.GetDisplayName()
+	name, _ := util.GetDisplayName(false)
 
 	c.HTML(http.StatusOK, "index.html", gin.H{
 		"base_url": util.GetEnv("BASE_URL", ""),
@@ -38,7 +38,7 @@ func (IndexController) List(c *gin.Context) {
 	online, _ := list.Get("online")
 	offline, _ := list.Get("offline")
 	info, _ := list.Get("info")
-	name, _ := util.GetDisplayName()
+	name, _ := util.GetDisplayName(false)
 
 	result := gin.H{
 		"base_url": util.GetEnv("BASE_URL", ""),
@@ -60,7 +60,7 @@ func (IndexController) List(c *gin.Context) {
 func (IndexController) Info(c *gin.Context) {
 	uuid := c.Param("uuid")
 
-	info, err := util.GetInfo(uuid)
+	info, err := util.GetInfo(uuid, false)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve info"})
 		return
@@ -69,6 +69,17 @@ func (IndexController) Info(c *gin.Context) {
 	latest, err := util.GetCollectionLatest(uuid)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve latest collection data"})
+		return
+	}
+
+	if c.Request.Header.Get("X-Requested-With") == "XMLHttpRequest" {
+		c.HTML(http.StatusOK, "info_ajax.html", gin.H{
+			"uuid":     uuid,
+			"base_url": util.GetEnv("BASE_URL", ""),
+			"info":     info,
+			"latest":   latest,
+			"Context":  c,
+		})
 		return
 	}
 

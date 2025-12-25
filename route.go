@@ -48,10 +48,6 @@ func SetupRouter() *gin.Engine {
 		"upper": strings.ToUpper,
 		"lower": strings.ToLower,
 		"trim":  strings.TrimSpace,
-		// "json": func(v any) template.JS {
-		// 	b, _ := json.Marshal(v)
-		// 	return template.JS(b)
-		// },
 		"iconURL": func(v any) string {
 			url := "https://cdnjs.cloudflare.com/ajax/libs/simple-icons/14.3.0/"
 			icon := []string{
@@ -198,13 +194,8 @@ func SetupRouter() *gin.Engine {
 	// In non-debug (production) mode, use a custom recovery that renders
 	// a friendly error page instead of exposing stack traces.
 
-	if gin.IsDebugging() {
-		r.Use(gin.Recovery())
-	} else {
-		r.Use(gin.CustomRecovery(func(c *gin.Context, recovered interface{}) {
-			c.HTML(http.StatusInternalServerError, "error.html", gin.H{})
-		}))
-	}
+	r.Use(gin.CustomRecovery(controller.Error.InternalServerError))
+
 	// In non-debug mode, route unknown paths and methods to the error page.
 	r.NoRoute(controller.Error.NoRouteError)
 	r.NoMethod(controller.Error.NoMethodError)
@@ -230,20 +221,6 @@ func SetupRouter() *gin.Engine {
 		_api.GET("/report/:uuid", api.Report.Get)
 		_api.GET("/battery/:uuid", api.Battery.Get)
 	}
-
-	// Public routes
-	r.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"status": "ok", "uptime": time.Now().UTC()})
-	})
-	// Public routes
-	r.GET("/404", func(c *gin.Context) {
-		c.HTML(http.StatusNotFound,
-			"error.html", gin.H{})
-	})
-	r.GET("/metrics", func(c *gin.Context) {
-		// placeholder for real metrics
-		c.JSON(http.StatusOK, gin.H{"requests": 1234})
-	})
 
 	// Admin group with simple basic-auth middleware example
 	admin := r.Group("/admin", gin.BasicAuth(gin.Accounts{

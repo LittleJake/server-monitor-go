@@ -22,7 +22,7 @@ func (DiskAPI) Get(c *gin.Context) {
 		return
 	}
 
-	result, err := util.GetCollection(uuid)
+	result, err := util.GetCollection(uuid, false)
 	disk := util.CollectionFormat(result, "Disk")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{

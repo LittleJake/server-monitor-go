@@ -22,7 +22,7 @@ func (NetworkAPI) Get(c *gin.Context) {
 		return
 	}
 
-	result, err := util.GetCollection(uuid)
+	result, err := util.GetCollection(uuid, false)
 	network := util.CollectionFormat(result, "Network")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{

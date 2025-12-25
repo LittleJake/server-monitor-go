@@ -21,7 +21,11 @@ func GinI18nLocalize() gin.HandlerFunc {
 			func(context *gin.Context, defaultLang string) string {
 				lang := context.Query("lang")
 				if lang == "" {
-					return defaultLang
+					if cookie, err := context.Cookie("lang"); err == nil {
+						lang = cookie
+					} else {
+						return defaultLang
+					}
 				}
 				return lang
 			},

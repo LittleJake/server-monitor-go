@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Oops! Error!</title>
+    <title>{{locale .Context "0000048" }}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.4.6/css/flag-icon.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mdui/1.0.2/css/mdui.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -40,7 +40,7 @@
             width: 100%;
         }
 
-        .echo pre {
+        .echo div {
             padding: 16px;
             overflow: auto;
             font-size: 85%;
@@ -49,11 +49,6 @@
             border: 0;
             border-radius: 3px;
             font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
-        }
-
-        .echo pre > pre {
-            padding: 0;
-            margin: 0;
         }
 
         /* Exception Info */
@@ -79,40 +74,6 @@
             padding: 16px;
             border-radius: 4px;
             background: #999;
-        }
-        .exception .source-code{
-            padding: 6px;
-            border: 1px solid #ddd;
-
-            background: #f9f9f9;
-            overflow-x: auto;
-
-        }
-        .exception .source-code pre{
-            margin: 0;
-        }
-        .exception .source-code pre ol{
-            margin: 0;
-            color: #4288ce;
-            display: inline-block;
-            min-width: 100%;
-            box-sizing: border-box;
-            font-size:14px;
-            font-family: "Century Gothic",Consolas,"Liberation Mono",Courier,Verdana;
-            padding-left: 40;
-        }
-        .exception .source-code pre li{
-            border-left: 1px solid #ddd;
-            height: 18px;
-            line-height: 18px;
-        }
-        .exception .source-code pre code{
-            color: #333;
-            height: 100%;
-            display: inline-block;
-            border-left: 1px solid #fff;
-            font-size:14px;
-            font-family: Consolas,"Liberation Mono",Courier,Verdana,"微软雅黑";
         }
         .exception .trace{
             padding: 6px;
@@ -167,9 +128,6 @@
             font-weight: bold;
             white-space: nowrap;
         }
-        .exception-var table td pre{
-            margin: 0;
-        }
 
         /* Copyright Info */
         .copyright{
@@ -177,21 +135,6 @@
             padding: 12px 0;
             border-top: 1px solid #eee;
         }
-
-        /* SPAN elements with the classes below are added by prettyprint. */
-        pre.prettyprint .pln { color: #000 }  /* plain text */
-        pre.prettyprint .str { color: #080 }  /* string content */
-        pre.prettyprint .kwd { color: #008 }  /* a keyword */
-        pre.prettyprint .com { color: #800 }  /* a comment */
-        pre.prettyprint .typ { color: #606 }  /* a type name */
-        pre.prettyprint .lit { color: #066 }  /* a literal value */
-        /* punctuation, lisp open bracket, lisp close bracket */
-        pre.prettyprint .pun, pre.prettyprint .opn, pre.prettyprint .clo { color: #660 }
-        pre.prettyprint .tag { color: #008 }  /* a markup tag name */
-        pre.prettyprint .atn { color: #606 }  /* a markup attribute name */
-        pre.prettyprint .atv { color: #080 }  /* a markup attribute value */
-        pre.prettyprint .dec, pre.prettyprint .var { color: #606 }  /* a declaration; a variable name */
-        pre.prettyprint .fun { color: red }  /* a function name */
     </style>
 </head>
 <body class="mdui-appbar-with-toolbar mdui-theme-primary-indigo mdui-theme-accent-indigo">
@@ -205,7 +148,7 @@
         <a href="javascript:window.history.back();" class="mdui-btn mdui-btn-icon mdui-ripple">
             <i class="mdui-icon material-icons">&#xe5c4;</i>
         </a>
-        <a href="/" class="mdui-typo-headline">Server Monitor</a>
+        <a href="/" class="mdui-typo-headline">{{ locale .Context "0000039" }}</a>
         <div class="mdui-toolbar-spacer"></div>
     </div>
 </div>
@@ -213,7 +156,7 @@
     <div class="mdui-panel" mdui-panel id="main">
         <div class="mdui-panel-item mdui-panel-item-open">
             <div class="mdui-panel-item-header">
-                <div class="mdui-panel-item-title">Error Message</div>
+                <div class="mdui-panel-item-title">{{ locale .Context "0000050" }}</div>
             </div>
             <div class="mdui-panel-item-body">
                 <div class="echo">
@@ -225,48 +168,25 @@
 
                         <div class="info">
                             <div>
-                                <h2>{{ .File }}</h2>
+                                <h2>{{ .Error }}</h2>
                             </div>
-                            <div><h1>{{ .Message }}</h1></div>
+                            <div>
+                                <h1>{{ .Message }}</h1>
+                            </div>
                         </div>
-
                     </div>
-                    <?php if(!empty($source)){?>
-                    <div class="source-code">
-                        <pre class="prettyprint lang-php"><ol start="<?php echo $source['first']; ?>"><?php foreach ((array) $source['source'] as $key => $value) { ?><li class="line-<?php echo $key + $source['first']; ?>"><code><?php echo htmlentities($value); ?></code></li><?php } ?></ol></pre>
-                    </div>
-                    <?php }?>
                     <div class="trace">
-                        <h2>Call Stack</h2>
+                        <h2>Stack Trace</h2>
                         <ol>
-                            <li><?php echo sprintf('in %s', parse_file($file, $line)); ?></li>
-                            <?php foreach ((array) $trace as $value) { ?>
-                            <li>
-                                <?php
-                    // Show Function
-                    if($value['function']){
-                        echo sprintf(
-                            'at %s%s%s(%s)',
-                            isset($value['class']) ? parse_class($value['class']) : '',
-                            isset($value['type'])  ? $value['type'] : '',
-                            $value['function'],
-                            isset($value['args'])?parse_args($value['args']):''
-                        );
-                    }
-
-                    // Show line
-                    if (isset($value['file']) && isset($value['line'])) {
-                        echo sprintf(' in %s', parse_file($value['file'], $value['line']));
-                    }
-                ?>
-                            </li>
-                            <?php } ?>
+                            {{ range .StackTraceLines }}
+                            <li>{{ . }}</li>
+                            {{ end }}
                         </ol>
                     </div>
                 </div>
                 {{ else }}
                 <div class="exception">
-                    <div class="info"><h1>Something is wrong!</h1></div>
+                    <div class="info"><h1>{{ locale .Context "0000047" }}</h1></div>
                 </div>
                 {{ end }}
 
@@ -307,104 +227,14 @@
                     </table>
                 </div>
                 {{ end }}
-                <!-- code output js -->
-                {{ if .Debug }}
-                <script>
-                    var LINE = 100;
-
-                    function $(selector, node){
-                        var elements;
-
-                        node = node || document;
-                        if(document.querySelectorAll){
-                            elements = node.querySelectorAll(selector);
-                        } else {
-                            switch(selector.substr(0, 1)){
-                                case '#':
-                                    elements = [node.getElementById(selector.substr(1))];
-                                    break;
-                                case '.':
-                                    if(document.getElementsByClassName){
-                                        elements = node.getElementsByClassName(selector.substr(1));
-                                    } else {
-                                        elements = get_elements_by_class(selector.substr(1), node);
-                                    }
-                                    break;
-                                default:
-                                    elements = node.getElementsByTagName();
-                            }
-                        }
-                        return elements;
-
-                        function get_elements_by_class(search_class, node, tag) {
-                            var elements = [], eles,
-                                pattern  = new RegExp('(^|\\s)' + search_class + '(\\s|$)');
-
-                            node = node || document;
-                            tag  = tag  || '*';
-
-                            eles = node.getElementsByTagName(tag);
-                            for(var i = 0; i < eles.length; i++) {
-                                if(pattern.test(eles[i].className)) {
-                                    elements.push(eles[i])
-                                }
-                            }
-
-                            return elements;
-                        }
-                    }
-
-                    $.getScript = function(src, func){
-                        var script = document.createElement('script');
-
-                        script.async  = 'async';
-                        script.src    = src;
-                        script.onload = func || function(){};
-
-                        $('head')[0].appendChild(script);
-                    }
-
-                    ;(function(){
-                        var files = $('.toggle');
-                        var ol    = $('ol', $('.prettyprint')[0]);
-                        var li    = $('li', ol[0]);
-
-                        // 短路径和长路径变换
-                        for(var i = 0; i < files.length; i++){
-                            files[i].ondblclick = function(){
-                                var title = this.title;
-
-                                this.title = this.innerHTML;
-                                this.innerHTML = title;
-                            }
-                        }
-
-                        // 设置出错行
-                        var err_line = $('.line-' + LINE, ol[0])[0];
-                        err_line.className = err_line.className + ' line-error';
-
-                        $.getScript('//cdn.bootcss.com/prettify/r298/prettify.min.js', function(){
-                            prettyPrint();
-
-                            // 解决Firefox浏览器一个很诡异的问题
-                            // 当代码高亮后，ol的行号莫名其妙的错位
-                            // 但是只要刷新li里面的html重新渲染就没有问题了
-                            if(window.navigator.userAgent.indexOf('Firefox') >= 0){
-                                ol[0].innerHTML = ol[0].innerHTML;
-                            }
-                        });
-
-                    })();
-                </script>
-                {{ end }}
             </div>
         </div>
     </div>
 </div>
 <div class="bottom-nav mdui-color-indigo">
     <div class="nav-text">
-        <p class="mdui-text-color-white-text">LittleJake, 2020. </p>
-        <p class="mdui-text-color-white-secondary">Licensed under the Apache License, Version 2.0</p>
+        <p class="mdui-text-color-white-text">{{ locale .Context "0000051" }}</p>
+        <p class="mdui-text-color-white-secondary">{{ locale .Context "0000044" }}</p>
     </div>
 </div>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdui/1.0.2/js/mdui.min.js"></script>
