@@ -43,7 +43,7 @@ func SetupRouter() *gin.Engine {
 	r.Use(middleware.ServerDataMiddleware())
 	r.Use(middleware.GinI18nLocalize())
 
-	r.SetFuncMap(template.FuncMap{
+	funcMap := template.FuncMap{
 		"upper": strings.ToUpper,
 		"lower": strings.ToLower,
 		"trim":  strings.TrimSpace,
@@ -188,7 +188,10 @@ func SetupRouter() *gin.Engine {
 			}
 			return fmt.Sprintf("%s", v)
 		},
-	})
+	}
+
+	r.SetHTMLTemplate(template.Must(template.New("").Funcs(funcMap).ParseFS(assets.TemplatesFS, "templates/**/*.html")))
+
 	// Use the default Recovery in debug mode so developers see panics.
 	// In non-debug (production) mode, use a custom recovery that renders
 	// a friendly error page instead of exposing stack traces.

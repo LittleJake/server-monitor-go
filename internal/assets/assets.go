@@ -13,6 +13,9 @@ var faviconFS embed.FS
 //go:embed locales
 var LocalesFS embed.FS
 
+//go:embed templates
+var TemplatesFS embed.FS
+
 // ServeFavicon serves the embedded favicon.ico
 func ServeFavicon(c *gin.Context) {
 	data, err := faviconFS.ReadFile("favicon.ico")

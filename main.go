@@ -27,8 +27,6 @@ func main() {
 
 	r := SetupRouter()
 	// listen and serve on 0.0.0.0:8080
-	r.LoadHTMLGlob("view/**/*.html")
-
 	go util.CronJob()
 
 	print("starting server on :8888")
