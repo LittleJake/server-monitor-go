@@ -1,7 +1,7 @@
 Server Monitor Go
 ==========
 
-<img alt="Apache 2.0" src="https://img.shields.io/github/license/LittleJake/server-monitor-go?style=for-the-badge"> <img src="https://img.shields.io/packagist/php-v/topthink/think/v5.1.41?style=for-the-badge">
+<img alt="Apache 2.0" src="https://img.shields.io/github/license/LittleJake/server-monitor-go?style=for-the-badge">
 
 <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/LittleJake/server-monitor-go?style=for-the-badge">
 
