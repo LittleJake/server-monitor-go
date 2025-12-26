@@ -37,8 +37,6 @@ vim .env
 
 <img width="2478" height="1254" alt="image" src="https://github.com/user-attachments/assets/83a7d317-bbab-4e57-8ce7-92eb253c65cc" />
 
-<img width="2478" height="1254" alt="image" src="https://github.com/user-attachments/assets/a3c5c7-bbab-4e57-8ce7-92eb253c65cc" />
-
 
 ### Demo
 
