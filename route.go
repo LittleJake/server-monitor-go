@@ -4,7 +4,6 @@ import (
 	"crypto/md5"
 	"fmt"
 	"html/template"
-	"net/http"
 	"reflect"
 	"strconv"
 	"strings"
@@ -223,18 +222,18 @@ func SetupRouter() *gin.Engine {
 	}
 
 	// Admin group with simple basic-auth middleware example
-	admin := r.Group("/admin", gin.BasicAuth(gin.Accounts{
-		"admin": "password", // DON"T use hardcoded credentials in production
-	}))
-	{
-		admin.GET("/dashboard", func(c *gin.Context) {
-			user := c.MustGet(gin.AuthUserKey).(string)
-			c.JSON(http.StatusOK, gin.H{"message": "welcome to admin dashboard", "user": user})
-		})
-	}
+	// admin := r.Group("/admin", gin.BasicAuth(gin.Accounts{
+	// 	"admin": "password", // DON"T use hardcoded credentials in production
+	// }))
+	// {
+	// 	admin.GET("/dashboard", func(c *gin.Context) {
+	// 		user := c.MustGet(gin.AuthUserKey).(string)
+	// 		c.JSON(http.StatusOK, gin.H{"message": "welcome to admin dashboard", "user": user})
+	// 	})
+	// }
 
-	// Serve static files (example)
-	r.Static("/static", "./public")
+	// // Serve static files (example)
+	// r.Static("/static", "./public")
 
 	// Serve embedded favicon.ico
 	r.GET("/favicon.ico", assets.ServeFavicon)
