@@ -158,6 +158,11 @@ func GetCollection(uuid string, refresh bool) (*orderedmap.OrderedMap[int64, Col
 		return nil, err
 	}
 
+	if len(data) == 0 {
+		// fmt.Println("no data found for uuid:", uuid)
+		return nil, fmt.Errorf("no data found for uuid: %s", uuid)
+	}
+
 	for _, item := range data {
 		d, err := UnmarshalJSONData(item.Member.(string))
 		if err != nil {
@@ -430,6 +435,16 @@ func CronJob() {
 			go GetDisplayName(true)
 			go RetentionCollectionData(uuidKey)
 		}
+		// fmt.Printf("[current]MapStringCache size: %d, CollectionStatusCache size: %d, MapStringCache size: %d.\n", MapStringCache.GetSize(), CollectionStatusCache.GetSize(), MapStringCache.GetSize())
+		// fmt.Printf("[dropped]MapStringCache size: %d, CollectionStatusCache size: %d, MapStringCache size: %d.\n", MapStringCache.GetDropped(), CollectionStatusCache.GetDropped(), MapStringCache.GetDropped())
+		// fmt.Printf("[current]MapStringCache size: %d, CollectionStatusCache size: %d, MapStringCache size: %d.\n", unsafe.Sizeof(MapStringCache), unsafe.Sizeof(CollectionStatusCache), unsafe.Sizeof(MapStringCache))
+
+		// var m runtime.MemStats
+		// runtime.ReadMemStats(&m)
+		// fmt.Printf("Alloc: %d KiB, HeapSys: %d KiB, PauseTotalNs: %d ns\n",
+		// 	m.Alloc>>10, m.HeapSys>>10, m.PauseTotalNs)
+		// fmt.Printf("HeapIdle: %d KiB, HeapInuse: %d KiB, PauseTotalNs: %d ns\n",
+		// 	m.HeapIdle>>10, m.HeapInuse>>10, m.PauseTotalNs)
 
 		time.Sleep(time.Duration(GetEnvInt("CRON_JOB_INTERVAL", 60)) * time.Second)
 	}

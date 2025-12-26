@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/LittleJake/server-monitor-go/internal/util"
@@ -26,9 +27,9 @@ func main() {
 	util.SetupCollectionStatusCache()
 
 	r := SetupRouter()
-	// listen and serve on 0.0.0.0:8080
+
 	go util.CronJob()
 
-	print("starting server on :8888")
-	_ = r.Run("127.0.0.1:8888")
+	fmt.Printf("starting server on %s:%d", util.GetEnv("LISTEN_ADDRESS", "127.0.0.1"), util.GetEnvInt("LISTEN_PORT", 8888))
+	_ = r.Run(fmt.Sprintf("%s:%d", util.GetEnv("LISTEN_ADDRESS", "127.0.0.1"), util.GetEnvInt("LISTEN_PORT", 8888)))
 }
