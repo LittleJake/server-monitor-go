@@ -121,8 +121,8 @@
                 url: url,
                 async: true,
                 success: function(data){$('#ajax').html(data);mdui.mutation();$('#loading').addClass("mdui-hidden");},
-                error: function(data, status, e){mdui.snackbar({message: e});},
-                complete: function(){refreshLock = false;}
+                error: (data, status, e) => {mdui.snackbar({message: e});},
+                complete: () => {refreshLock = false}
             })
         }
     }

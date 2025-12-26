@@ -23,13 +23,14 @@ func NewRedisClient(addr, password string, db int, t *tls.Config) *redis.Client 
 		DB:                 db,
 		TLSConfig:          t,
 		DialTimeout:        5 * time.Second,
-		ReadTimeout:        5 * time.Second,
-		WriteTimeout:       5 * time.Second,
-		PoolSize:           50,
+		ReadTimeout:        10 * time.Second,
+		WriteTimeout:       10 * time.Second,
+		PoolSize:           20,
 		ReadBufferSize:     131072,
 		WriteBufferSize:    131072,
-		MaxConcurrentDials: 50,
+		MaxConcurrentDials: 10,
 		MinIdleConns:       4,
+		MaxActiveConns:     100,
 	})
 }
 

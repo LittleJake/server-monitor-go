@@ -105,7 +105,7 @@ func GetCollectionStatus() (*orderedmap.OrderedMap[string, map[string]interface{
 
 	for uuidKey := range uuids {
 		latest, err := GetCollectionLatest(uuidKey)
-		if err != nil {
+		if err != nil || len(latest) == 0 {
 			fmt.Println(uuidKey, err)
 			continue
 		}
@@ -148,12 +148,12 @@ func GetCollection(uuid string, refresh bool) (*orderedmap.OrderedMap[int64, Col
 		"system_monitor:collection:"+uuid,
 		&redis.ZRangeBy{Min: "0", Max: fmt.Sprint(time.Now().Unix())},
 	)
-	if !refresh && (err != nil || len(data) == 0) {
-		CollectionCache.Set(
-			"system_monitor:collection:"+uuid,
-			orderedMap,
-			time.Duration(GetEnvInt("LOCAL_CACHE_TIME", 300))*time.Second,
-		)
+	if err != nil || len(data) == 0 {
+		// CollectionCache.Set(
+		// 	"system_monitor:collection:"+uuid,
+		// 	orderedMap,
+		// 	time.Duration(GetEnvInt("LOCAL_CACHE_TIME", 300))*time.Second,
+		// )
 		fmt.Println(err)
 		return nil, err
 	}
@@ -178,7 +178,7 @@ func GetCollection(uuid string, refresh bool) (*orderedmap.OrderedMap[int64, Col
 
 func GetCollectionLatest(uuid string) (CollectionData, error) {
 	orderedMap, err := GetCollection(uuid, false)
-	if err != nil {
+	if err != nil || orderedMap == nil || orderedMap.Len() == 0 {
 		return CollectionData{}, err
 	}
 
@@ -194,7 +194,7 @@ func GetCollectionLatest(uuid string) (CollectionData, error) {
 func CollectionFormat(collections *orderedmap.OrderedMap[int64, CollectionData], name string) map[string]interface{} {
 	// fmt.Println(collections.Front())
 	result := map[string]interface{}{}
-	if collections.Len() == 0 {
+	if collections.Len() == 0 || checkEmpty(collections.Back().Value[name]) {
 		return result
 	}
 	switch name {
@@ -270,6 +270,48 @@ func CollectionFormat(collections *orderedmap.OrderedMap[int64, CollectionData],
 			}
 		}
 
+	case "IO":
+		result = map[string]interface{}{
+			"time": []string{},
+			"read": map[string]interface{}{
+				"counts":    []float64{},
+				"megabytes": []float64{},
+				"time_ms":   []float64{},
+			},
+			"write": map[string]interface{}{
+				"counts":    []float64{},
+				"megabytes": []float64{},
+				"time_ms":   []float64{},
+			},
+		}
+
+		for score, collection := range collections.AllFromFront() {
+			// d := reflect.ValueOf(collection)
+
+			result["time"] = append(result["time"].([]string), time.Unix(score, 0).Format("01-02 15:04"))
+
+			read_counts, err1 := toFloat64(collection[name].(map[string]interface{})["read"].(map[string]interface{})["count"])
+			read_megabytes, err2 := toFloat64(collection[name].(map[string]interface{})["read"].(map[string]interface{})["bytes"])
+			read_time_ms, err3 := toFloat64(collection[name].(map[string]interface{})["read"].(map[string]interface{})["time"])
+			write_counts, err4 := toFloat64(collection[name].(map[string]interface{})["write"].(map[string]interface{})["count"])
+			write_megabytes, err5 := toFloat64(collection[name].(map[string]interface{})["write"].(map[string]interface{})["bytes"])
+			write_time_ms, err6 := toFloat64(collection[name].(map[string]interface{})["write"].(map[string]interface{})["time"])
+
+			if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil {
+				fmt.Println("Error converting to float64:", err1, err2, err3, err4, err5, err6)
+				continue
+			}
+
+			result["read"].(map[string]interface{})["counts"] = append(result["read"].(map[string]interface{})["counts"].([]float64), read_counts)
+			result["read"].(map[string]interface{})["megabytes"] = append(result["read"].(map[string]interface{})["megabytes"].([]float64), read_megabytes/1048576)
+			result["read"].(map[string]interface{})["time_ms"] = append(result["read"].(map[string]interface{})["time_ms"].([]float64), read_time_ms)
+
+			result["write"].(map[string]interface{})["counts"] = append(result["write"].(map[string]interface{})["counts"].([]float64), write_counts)
+			result["write"].(map[string]interface{})["megabytes"] = append(result["write"].(map[string]interface{})["megabytes"].([]float64), write_megabytes/1048576)
+			result["write"].(map[string]interface{})["time_ms"] = append(result["write"].(map[string]interface{})["time_ms"].([]float64), write_time_ms)
+
+		}
+
 	case "Load", "Thermal":
 		result = map[string]interface{}{
 			"time":  []string{},
@@ -323,6 +365,7 @@ func GetDisplayName(refresh bool) (map[string]string, error) {
 		fmt.Println("Error getting name from Redis:", err)
 		return map[string]string{}, err
 	}
+
 	MapStringCache.Set(
 		"system_monitor:name",
 		data,
@@ -341,12 +384,12 @@ func GetInfo(uuid string, refresh bool) (map[string]string, error) {
 	}
 
 	data, err := RedisHGetAll(context.Background(), GetRedisClient(), "system_monitor:info:"+uuid)
-	if !refresh && (err != nil || len(data) == 0) {
-		MapStringCache.Set(
-			"system_monitor:info:"+uuid,
-			data,
-			time.Duration(GetEnvInt("LOCAL_CACHE_TIME", 300))*time.Second,
-		)
+	if err != nil || len(data) == 0 {
+		// MapStringCache.Set(
+		// 	"system_monitor:info:"+uuid,
+		// 	data,
+		// 	time.Duration(GetEnvInt("LOCAL_CACHE_TIME", 300))*time.Second,
+		// )
 		// fmt.Println("Error getting info from Redis:", err)
 		return map[string]string{}, err
 	}
