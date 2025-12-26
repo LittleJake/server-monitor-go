@@ -18,14 +18,18 @@ var RedisClient *redis.Client
 // NewRedisClient returns a configured Redis client.
 func NewRedisClient(addr, password string, db int, t *tls.Config) *redis.Client {
 	return redis.NewClient(&redis.Options{
-		Addr:         addr,
-		Password:     password,
-		DB:           db,
-		TLSConfig:    t,
-		DialTimeout:  5 * time.Second,
-		ReadTimeout:  3 * time.Second,
-		WriteTimeout: 3 * time.Second,
-		PoolSize:     10,
+		Addr:               addr,
+		Password:           password,
+		DB:                 db,
+		TLSConfig:          t,
+		DialTimeout:        5 * time.Second,
+		ReadTimeout:        5 * time.Second,
+		WriteTimeout:       5 * time.Second,
+		PoolSize:           50,
+		ReadBufferSize:     131072,
+		WriteBufferSize:    131072,
+		MaxConcurrentDials: 50,
+		MinIdleConns:       4,
 	})
 }
 
@@ -304,4 +308,13 @@ func RedisZRangeWithScores(ctx context.Context, r *redis.Client, key string, sta
 		return nil, fmt.Errorf("redis zrangewithscores %q: %w", key, err)
 	}
 	return vals, nil
+}
+
+// RedisZRemRangeByScore
+func RedisZRemRangeByScore(ctx context.Context, r *redis.Client, key, min, max string) (int64, error) {
+	n, err := r.ZRemRangeByScore(ctx, key, min, max).Result()
+	if err != nil {
+		return 0, fmt.Errorf("redis zremrangebyscore %q: %w", key, err)
+	}
+	return n, nil
 }

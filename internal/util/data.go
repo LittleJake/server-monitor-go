@@ -148,7 +148,7 @@ func GetCollection(uuid string, refresh bool) (*orderedmap.OrderedMap[int64, Col
 		"system_monitor:collection:"+uuid,
 		&redis.ZRangeBy{Min: "0", Max: fmt.Sprint(time.Now().Unix())},
 	)
-	if err != nil {
+	if !refresh && (err != nil || len(data) == 0) {
 		CollectionCache.Set(
 			"system_monitor:collection:"+uuid,
 			orderedMap,
@@ -341,7 +341,7 @@ func GetInfo(uuid string, refresh bool) (map[string]string, error) {
 	}
 
 	data, err := RedisHGetAll(context.Background(), GetRedisClient(), "system_monitor:info:"+uuid)
-	if err != nil || len(data) == 0 {
+	if !refresh && (err != nil || len(data) == 0) {
 		MapStringCache.Set(
 			"system_monitor:info:"+uuid,
 			data,
@@ -356,17 +356,36 @@ func GetInfo(uuid string, refresh bool) (map[string]string, error) {
 		data,
 		time.Duration(GetEnvInt("LOCAL_CACHE_TIME", 300))*time.Second,
 	)
-
 	return data, nil
+}
+
+func RetentionCollectionData(uuid string) {
+	ctx := context.Background()
+	retentionDays := GetEnvInt("DATA_RETENTION_DAYS", 7)
+	cutoffTimestamp := time.Now().AddDate(0, 0, -retentionDays).Unix()
+	RedisZRemRangeByScore(
+		ctx,
+		RedisClient,
+		"system_monitor:collection:"+uuid,
+		"-inf",
+		fmt.Sprint(cutoffTimestamp),
+	)
+
+	// if err != nil {
+	// 	fmt.Println("Error during data retention for uuid:", uuid, err)
+	// } else {
+	// 	fmt.Println("Data retention completed for uuid:", uuid)
+	// }
 }
 
 func CronJob() {
 	for {
 		uuids, _ := GetUUIDs(true)
 		for uuidKey := range uuids {
-			_, _ = GetInfo(uuidKey, true)
-			_, _ = GetCollection(uuidKey, true)
-			_, _ = GetDisplayName(true)
+			go GetInfo(uuidKey, true)
+			go GetCollection(uuidKey, true)
+			go GetDisplayName(true)
+			go RetentionCollectionData(uuidKey)
 		}
 
 		time.Sleep(time.Duration(GetEnvInt("CRON_JOB_INTERVAL", 60)) * time.Second)

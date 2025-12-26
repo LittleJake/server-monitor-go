@@ -67,7 +67,7 @@ func SetupRouter() *gin.Engine {
 				"qemu",
 				"raspberrypi",
 				//last
-				"linux",
+				// "linux",
 			}
 
 			for _, icon := range icon {
@@ -95,8 +95,8 @@ func SetupRouter() *gin.Engine {
 				"openwrt",
 				"qemu",
 				"raspberrypi",
-				//last
-				"linux",
+				// //last
+				// "linux",
 			}
 
 			for _, icon := range icon {
@@ -125,8 +125,8 @@ func SetupRouter() *gin.Engine {
 				"qemu":         "#FF6600",
 				"raspberrypi":  "#A22846",
 
-				//last
-				"linux": "#FCC624",
+				// //last
+				// "linux": "#FCC624",
 			}
 
 			for name, color := range icon {
