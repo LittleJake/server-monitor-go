@@ -25,6 +25,7 @@ func main() {
 	util.SetupCollectionCache()
 	util.SetupMapStringCache()
 	util.SetupCollectionStatusCache()
+	util.SetupDiskCache()
 
 	r := SetupRouter()
 

@@ -44,23 +44,6 @@ func toFloat64(value interface{}) (float64, error) {
 	}
 }
 
-func FieldToString(f reflect.Value) string {
-	switch f.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return strconv.FormatInt(f.Int(), 10)
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return strconv.FormatUint(f.Uint(), 10)
-	case reflect.Float32, reflect.Float64:
-		return strconv.FormatFloat(f.Float(), 'f', -1, 64) // -1 自动去掉多余0
-	case reflect.String:
-		return f.String()
-	case reflect.Bool:
-		return strconv.FormatBool(f.Bool())
-	default:
-		return fmt.Sprintf("%v", f.Interface())
-	}
-}
-
 func UnmarshalJSONData(data string) (*CollectionData, error) {
 	var d CollectionData
 	err := json.Unmarshal([]byte(data), &d)
@@ -132,13 +115,13 @@ func GetCollectionStatus() (*orderedmap.OrderedMap[string, map[string]interface{
 }
 
 func GetCollection(uuid string, refresh bool) (*orderedmap.OrderedMap[int64, CollectionData], error) {
-	if CollectionCache == nil {
-		fmt.Println("LocalCacheClient is not initialized")
-	}
+	// if CollectionCache == nil {
+	// 	fmt.Println("LocalCacheClient is not initialized")
+	// }
 
-	if !refresh && CollectionCache != nil && CollectionCache.Get("system_monitor:collection:"+uuid) != nil {
-		return CollectionCache.Get("system_monitor:collection:" + uuid).Value(), nil
-	}
+	// if !refresh && CollectionCache != nil && CollectionCache.Get("system_monitor:collection:"+uuid) != nil {
+	// 	return CollectionCache.Get("system_monitor:collection:" + uuid).Value(), nil
+	// }
 
 	orderedMap := orderedmap.NewOrderedMap[int64, CollectionData]()
 
@@ -147,14 +130,14 @@ func GetCollection(uuid string, refresh bool) (*orderedmap.OrderedMap[int64, Col
 		RedisClient,
 		"system_monitor:collection:"+uuid,
 		&redis.ZRangeBy{Min: "0", Max: fmt.Sprint(time.Now().Unix())},
+		!refresh,
 	)
-	if err != nil || len(data) == 0 {
+	if err != nil {
 		// CollectionCache.Set(
 		// 	"system_monitor:collection:"+uuid,
 		// 	orderedMap,
 		// 	time.Duration(GetEnvInt("LOCAL_CACHE_TIME", 300))*time.Second,
 		// )
-		fmt.Println(err)
 		return nil, err
 	}
 
@@ -165,18 +148,20 @@ func GetCollection(uuid string, refresh bool) (*orderedmap.OrderedMap[int64, Col
 
 	for _, item := range data {
 		d, err := UnmarshalJSONData(item.Member.(string))
+
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
+
 		orderedMap.Set(int64(item.Score), *d)
 	}
 
-	CollectionCache.Set(
-		"system_monitor:collection:"+uuid,
-		orderedMap,
-		time.Duration(GetEnvInt("LOCAL_CACHE_TIME", 300))*time.Second,
-	)
+	// CollectionCache.Set(
+	// 	"system_monitor:collection:"+uuid,
+	// 	orderedMap,
+	// 	time.Duration(GetEnvInt("LOCAL_CACHE_TIME", 300))*time.Second,
+	// )
 
 	return orderedMap, nil
 }
@@ -192,13 +177,14 @@ func GetCollectionLatest(uuid string) (CollectionData, error) {
 		return CollectionData{}, fmt.Errorf("no data found for uuid: %s", uuid)
 	}
 
-	// fmt.Println(latest.Value)
+	fmt.Println(latest)
 	return latest.Value, nil
 }
 
 func CollectionFormat(collections *orderedmap.OrderedMap[int64, CollectionData], name string) map[string]interface{} {
 	// fmt.Println(collections.Front())
 	result := map[string]interface{}{}
+
 	if collections.Len() == 0 || checkEmpty(collections.Back().Value[name]) {
 		return result
 	}

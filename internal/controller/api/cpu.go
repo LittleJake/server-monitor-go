@@ -23,12 +23,12 @@ func (CpuAPI) Get(c *gin.Context) {
 	}
 
 	result, err := util.GetCollection(uuid, false)
-	load := util.CollectionFormat(result, "Load")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
+	load := util.CollectionFormat(result, "Load")
 	c.JSON(http.StatusOK, load)
 }

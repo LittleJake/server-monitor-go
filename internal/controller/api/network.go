@@ -23,12 +23,12 @@ func (NetworkAPI) Get(c *gin.Context) {
 	}
 
 	result, err := util.GetCollection(uuid, false)
-	network := util.CollectionFormat(result, "Network")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
+	network := util.CollectionFormat(result, "Network")
 	c.JSON(http.StatusOK, network)
 }

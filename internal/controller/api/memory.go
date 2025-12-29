@@ -22,12 +22,12 @@ func (MemoryAPI) Get(c *gin.Context) {
 	}
 
 	result, err := util.GetCollection(uuid, false)
-	memory := util.CollectionFormat(result, "Memory")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
+	memory := util.CollectionFormat(result, "Memory")
 	c.JSON(http.StatusOK, memory)
 }

@@ -23,13 +23,13 @@ func (ThermalAPI) Get(c *gin.Context) {
 	}
 
 	result, err := util.GetCollection(uuid, false)
-	load := util.CollectionFormat(result, "Thermal")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
-	c.JSON(http.StatusOK, load)
+	thermal := util.CollectionFormat(result, "Thermal")
+	c.JSON(http.StatusOK, thermal)
 
 }

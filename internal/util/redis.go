@@ -285,11 +285,20 @@ func RedisZRangeByScore(ctx context.Context, r *redis.Client, key string, opt *r
 }
 
 // RedisZRangeByScoreWithScores returns members with scores in a score range.
-func RedisZRangeByScoreWithScores(ctx context.Context, r *redis.Client, key string, opt *redis.ZRangeBy) ([]redis.Z, error) {
+func RedisZRangeByScoreWithScores(ctx context.Context, r *redis.Client, key string, opt *redis.ZRangeBy, load_cache bool) ([]redis.Z, error) {
+	if load_cache {
+		vals, err := GetDiskCacheRedisZ(key)
+		if err == nil {
+			return vals, nil
+		}
+	}
+
 	vals, err := r.ZRangeByScoreWithScores(ctx, key, opt).Result()
 	if err != nil {
 		return nil, fmt.Errorf("redis zrangebyscore with scores %q: %w", key, err)
 	}
+
+	SetDiskCacheRedisZ(key, vals)
 	return vals, nil
 }
 

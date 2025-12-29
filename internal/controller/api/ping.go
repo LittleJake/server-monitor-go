@@ -22,12 +22,12 @@ func (PingAPI) Get(c *gin.Context) {
 	}
 
 	result, err := util.GetCollection(uuid, false)
-	ping := util.CollectionFormat(result, "Ping")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
+	ping := util.CollectionFormat(result, "Ping")
 	c.JSON(http.StatusOK, ping)
 }

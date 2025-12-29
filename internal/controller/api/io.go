@@ -22,12 +22,13 @@ func (IOAPI) Get(c *gin.Context) {
 	}
 
 	result, err := util.GetCollection(uuid, false)
-	io := util.CollectionFormat(result, "IO")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
+
+	io := util.CollectionFormat(result, "IO")
 	c.JSON(http.StatusOK, io)
 }

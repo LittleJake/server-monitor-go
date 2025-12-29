@@ -23,12 +23,12 @@ func (DiskAPI) Get(c *gin.Context) {
 	}
 
 	result, err := util.GetCollection(uuid, false)
-	disk := util.CollectionFormat(result, "Disk")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
+	disk := util.CollectionFormat(result, "Disk")
 	c.JSON(http.StatusOK, disk)
 }

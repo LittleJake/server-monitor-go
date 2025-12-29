@@ -22,13 +22,13 @@ func (BatteryAPI) Get(c *gin.Context) {
 	}
 
 	result, err := util.GetCollection(uuid, false)
-	battery := util.CollectionFormat(result, "Battery")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
+	battery := util.CollectionFormat(result, "Battery")
 	c.JSON(http.StatusOK, battery)
 
 }
