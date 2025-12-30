@@ -2,8 +2,10 @@ package api
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/LittleJake/server-monitor-go/internal/util"
+	"github.com/elliotchance/orderedmap/v3"
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,7 +23,18 @@ func (MemoryAPI) Get(c *gin.Context) {
 		return
 	}
 
-	result, err := util.GetCollection(uuid, false)
+	startTime, err3 := strconv.ParseInt(c.Query("start"), 10, 64)
+	endTime, err4 := strconv.ParseInt(c.Query("end"), 10, 64)
+
+	var result *orderedmap.OrderedMap[int64, util.CollectionData]
+	var err error
+	// result, err := util.GetCollection(uuid, false)
+	if err3 == nil && err4 == nil {
+		result, err = util.GetCollectionByTime(uuid, false, startTime, endTime)
+	} else {
+		result, err = util.GetCollection(uuid, false)
+	}
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),

@@ -114,6 +114,28 @@ func GetCollectionStatus() (*orderedmap.OrderedMap[string, map[string]interface{
 	return result, nil
 }
 
+func GetCollectionByTime(uuid string, refresh bool, start int64, end int64) (*orderedmap.OrderedMap[int64, CollectionData], error) {
+	if end < start {
+		return GetCollection(uuid, refresh)
+	}
+
+	result, err := GetCollection(uuid, refresh)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	m := orderedmap.NewOrderedMap[int64, CollectionData]()
+	for t, v := range result.AllFromFront() {
+		if t > start && t < end {
+			m.Set(t, v)
+			continue
+		}
+	}
+
+	return m, nil
+}
+
 func GetCollection(uuid string, refresh bool) (*orderedmap.OrderedMap[int64, CollectionData], error) {
 	// if CollectionCache == nil {
 	// 	fmt.Println("LocalCacheClient is not initialized")
