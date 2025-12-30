@@ -4,6 +4,8 @@ import (
 	"crypto/md5"
 	"fmt"
 	"html/template"
+	"io/fs"
+	"net/http"
 	"reflect"
 	"strconv"
 	"strings"
@@ -234,12 +236,14 @@ func SetupRouter() *gin.Engine {
 	// 		c.JSON(http.StatusOK, gin.H{"message": "welcome to admin dashboard", "user": user})
 	// 	})
 	// }
-
-	// // Serve static files (example)
-	// r.Static("/static", "./public")
+	static, _ := fs.Sub(assets.StaticFS, "static")
+	// Serve static files (example)
+	r.StaticFS("/static", http.FS(static))
 
 	// Serve embedded favicon.ico
 	r.GET("/favicon.ico", assets.ServeFavicon)
+
+	r.GET("/manifest.json", assets.ServeManifest)
 
 	return r
 }
