@@ -99,7 +99,11 @@ func GetCollectionStatus() (*orderedmap.OrderedMap[string, map[string]interface{
 		t := time.Unix(int64(i), 0)
 
 		if t.Before(time.Now().Add(-time.Duration(GetEnvInt("OFFLINE_THRESHOLD", 600)) * time.Second)) {
-			offline[uuidKey] = latest
+			if b, _ := RedisExists(context.Background(), RedisClient, "system_monitor:alive:"+uuidKey); b {
+				online[uuidKey] = latest
+			} else {
+				offline[uuidKey] = latest
+			}
 		} else {
 			online[uuidKey] = latest
 		}
