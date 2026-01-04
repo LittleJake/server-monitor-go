@@ -45,71 +45,62 @@ func SetupRouter() *gin.Engine {
 	r.Use(middleware.ServerDataMiddleware())
 	r.Use(middleware.GinI18nLocalize())
 
+	iconNameFormat := func(v any) string {
+		iconAlts := map[string]string{
+			"cortex":      "arm",
+			"qwrt":        "openwrt",
+			"immortalwrt": "openwrt",
+			"raspbian":    "raspberrypi",
+		}
+		icons := []string{
+			"redhat",
+			"centos",
+			"ubuntu",
+			"debian",
+			"windows",
+			"intel",
+			"amd",
+			"android",
+			"qualcomm",
+			"mediatek",
+			"alpine linux",
+			"arm",
+			"openwrt",
+			"qemu",
+			"raspberrypi",
+			// //last
+			// "linux",
+		}
+
+		iconName := strings.ToLower(v.(string))
+		for iconAlt, newIconName := range iconAlts {
+			if strings.Contains(iconName, iconAlt) {
+				iconName = strings.ReplaceAll(iconName, iconAlt, newIconName)
+				break
+			}
+		}
+
+		for _, icon := range icons {
+			if strings.Contains(iconName, icon) {
+				return icon
+			}
+		}
+
+		return "linux"
+	}
+
 	funcMap := template.FuncMap{
 		"upper": strings.ToUpper,
 		"lower": strings.ToLower,
 		"trim":  strings.TrimSpace,
 		"iconURL": func(v any) string {
 			url := "https://cdnjs.cloudflare.com/ajax/libs/simple-icons/14.3.0/"
-			icon := []string{
-				"redhat",
-				"centos",
-				"ubuntu",
-				"debian",
-				"windows",
-				"intel",
-				"amd",
-				"android",
-				"qualcomm",
-				"mediatek",
-				"alpine linux",
-				"arm",
-				"openwrt",
-				"qemu",
-				"raspberrypi",
-				//last
-				// "linux",
-			}
-
-			for _, icon := range icon {
-				if strings.Contains(strings.ToLower(v.(string)), icon) {
-					return fmt.Sprintf("%s%s.svg", url, strings.ReplaceAll(strings.ReplaceAll(icon, " ", ""), ".", "dot"))
-				}
-			}
-
-			return "https://cdnjs.cloudflare.com/ajax/libs/simple-icons/14.3.0/linux.svg"
+			iconName := iconNameFormat(v)
+			return fmt.Sprintf("%s%s.svg", url, strings.ReplaceAll(strings.ReplaceAll(iconName, " ", ""), ".", "dot"))
 		},
-		"iconName": func(v any) string {
-			icon := []string{
-				"redhat",
-				"centos",
-				"ubuntu",
-				"debian",
-				"windows",
-				"intel",
-				"amd",
-				"android",
-				"qualcomm",
-				"mediatek",
-				"alpine linux",
-				"arm",
-				"openwrt",
-				"qemu",
-				"raspberrypi",
-				// //last
-				// "linux",
-			}
-
-			for _, icon := range icon {
-				if strings.Contains(strings.ToLower(v.(string)), icon) {
-					return icon
-				}
-			}
-
-			return "linux"
-		},
+		"iconName": iconNameFormat,
 		"iconColor": func(v any) string {
-			icon := map[string]string{
+			iconColor := map[string]string{
 				"redhat":       "#EE0000",
 				"centos":       "#262577",
 				"ubuntu":       "#E95420",
@@ -127,16 +118,10 @@ func SetupRouter() *gin.Engine {
 				"raspberrypi":  "#A22846",
 
 				// //last
-				// "linux": "#FCC624",
+				"linux": "#FCC624",
 			}
 
-			for name, color := range icon {
-				if strings.Contains(strings.ToLower(v.(string)), name) {
-					return color
-				}
-			}
-
-			return "#FCC624"
+			return iconColor[iconNameFormat(v)]
 		},
 		"datetime": func(v any) string {
 			if reflect.TypeOf(v) == reflect.TypeOf(int64(0)) {
@@ -222,8 +207,9 @@ func SetupRouter() *gin.Engine {
 		_api.GET("/io/:uuid", api.IO.Get)
 		_api.GET("/ping/:uuid", api.Ping.Get)
 		_api.GET("/thermal/:uuid", api.Thermal.Get)
-		_api.GET("/report/:uuid", api.Report.Get)
 		_api.GET("/battery/:uuid", api.Battery.Get)
+
+		_api.POST("/report/:uuid", api.Report.Set)
 	}
 
 	// Admin group with simple basic-auth middleware example

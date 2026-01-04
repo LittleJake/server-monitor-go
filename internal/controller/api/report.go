@@ -8,4 +8,4 @@ type ReportAPI struct{}
 
 var Report = ReportAPI{}
 
-func (ReportAPI) Get(c *gin.Context) {}
+func (ReportAPI) Set(c *gin.Context) {}
