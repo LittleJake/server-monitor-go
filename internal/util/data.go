@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/elliotchance/orderedmap/v3"
@@ -460,4 +461,48 @@ func CronJob() {
 
 		time.Sleep(time.Duration(GetEnvInt("CRON_JOB_INTERVAL", 60)) * time.Second)
 	}
+}
+
+func IconNameFormat(v any) string {
+	iconAlts := map[string]string{
+		"cortex":      "arm",
+		"qwrt":        "openwrt",
+		"immortalwrt": "openwrt",
+		"raspbian":    "raspberrypi",
+	}
+	icons := []string{
+		"redhat",
+		"centos",
+		"ubuntu",
+		"debian",
+		"windows",
+		"intel",
+		"amd",
+		"android",
+		"qualcomm",
+		"mediatek",
+		"alpine linux",
+		"arm",
+		"openwrt",
+		"qemu",
+		"raspberrypi",
+		// //last
+		// "linux",
+	}
+
+	iconName := strings.ToLower(v.(string))
+	for iconAlt, newIconName := range iconAlts {
+		if strings.Contains(iconName, iconAlt) {
+			iconName = strings.ReplaceAll(iconName, iconAlt, newIconName)
+			break
+		}
+	}
+
+	for _, icon := range icons {
+		if strings.Contains(iconName, icon) {
+			return icon
+		}
+	}
+
+	return "linux"
 }

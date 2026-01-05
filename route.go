@@ -45,60 +45,16 @@ func SetupRouter() *gin.Engine {
 	r.Use(middleware.ServerDataMiddleware())
 	r.Use(middleware.GinI18nLocalize())
 
-	iconNameFormat := func(v any) string {
-		iconAlts := map[string]string{
-			"cortex":      "arm",
-			"qwrt":        "openwrt",
-			"immortalwrt": "openwrt",
-			"raspbian":    "raspberrypi",
-		}
-		icons := []string{
-			"redhat",
-			"centos",
-			"ubuntu",
-			"debian",
-			"windows",
-			"intel",
-			"amd",
-			"android",
-			"qualcomm",
-			"mediatek",
-			"alpine linux",
-			"arm",
-			"openwrt",
-			"qemu",
-			"raspberrypi",
-			// //last
-			// "linux",
-		}
-
-		iconName := strings.ToLower(v.(string))
-		for iconAlt, newIconName := range iconAlts {
-			if strings.Contains(iconName, iconAlt) {
-				iconName = strings.ReplaceAll(iconName, iconAlt, newIconName)
-				break
-			}
-		}
-
-		for _, icon := range icons {
-			if strings.Contains(iconName, icon) {
-				return icon
-			}
-		}
-
-		return "linux"
-	}
-
 	funcMap := template.FuncMap{
 		"upper": strings.ToUpper,
 		"lower": strings.ToLower,
 		"trim":  strings.TrimSpace,
 		"iconURL": func(v any) string {
 			url := "https://cdnjs.cloudflare.com/ajax/libs/simple-icons/14.3.0/"
-			iconName := iconNameFormat(v)
+			iconName := util.IconNameFormat(v)
 			return fmt.Sprintf("%s%s.svg", url, strings.ReplaceAll(strings.ReplaceAll(iconName, " ", ""), ".", "dot"))
 		},
-		"iconName": iconNameFormat,
+		"iconName": util.IconNameFormat,
 		"iconColor": func(v any) string {
 			iconColor := map[string]string{
 				"redhat":       "#EE0000",
@@ -121,7 +77,7 @@ func SetupRouter() *gin.Engine {
 				"linux": "#FCC624",
 			}
 
-			return iconColor[iconNameFormat(v)]
+			return iconColor[util.IconNameFormat(v)]
 		},
 		"datetime": func(v any) string {
 			if reflect.TypeOf(v) == reflect.TypeOf(int64(0)) {
@@ -138,20 +94,16 @@ func SetupRouter() *gin.Engine {
 
 		"sizeFormat": func(v any) string {
 			size, _ := strconv.ParseFloat(v.(string), 64)
-			//input MB
-			if size > 1024*1024*1024 {
-				return fmt.Sprintf("%.2f PB", size*1.0/1024/1024/1024)
+
+			units := []string{"MB", "GB", "TB", "PB", "EB", "ZB", "YB"}
+
+			i := 0
+
+			for i = 0; size >= 1024 && i < len(units)-1; i++ {
+				size /= 1024
 			}
 
-			if size > 1024*1024 {
-				return fmt.Sprintf("%.2f TB", size*1.0/1024/1024)
-			}
-
-			if size > 1024 {
-				return fmt.Sprintf("%.2f GB", size*1.0/1024)
-			}
-
-			return fmt.Sprintf("%.2f MB", size)
+			return fmt.Sprintf("%.2f %s", size, units[i])
 		},
 		"hash": func(v any) string {
 			return fmt.Sprintf("%x", md5.Sum([]byte(v.(string))))
